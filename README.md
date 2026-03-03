@@ -49,24 +49,16 @@ services:
       - OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxx
 ```
 
-### Configuration / 配置
+## 🔧 Technologies Stack / 技术栈
 
-Create a `.env` file or configure environment variables directly in `docker-compose.yml`:
-
-创建 `.env` 文件或直接在 `docker-compose.yml` 中配置环境变量：
-
-| Variable             | Description                                                        | Default                    |
-| :------------------- | :----------------------------------------------------------------- | :------------------------- |
-| `LOG_RETENTION_DAYS` | Number of days to keep parsed logs in the database. (日志保留天数) | `30`                       |
-| `OPENAI_API_KEY`     | API Key for the AI analysis engine. (AI 分析引擎的 API Key)        | -                          |
-| `DATABASE_URL`       | Path to the SQLite database. (SQLite 数据库路径)                   | `file:/app/data/sqlite.db` |
-
-## 🔧 Technologies Used / 技术栈
-
-- Framework: Next.js <https://nextjs.org/>
-- UI: Shadcn UI <https://ui.shadcn.com/>
-- Styling: Tailwind CSS <https://tailwindcss.com/>
-- Charting: Echarts <https://echarts.apache.org/>
-- Language: TypeScript <https://www.typescriptlang.org/>
-- Database: SQLite <https://www.sqlite.org/>
-- Docker & Docker Compose <https://www.docker.com/>
+- **Framework/框架**: Next.js <https://nextjs.org/>
+- **Language/语言**: TypeScript <https://www.typescriptlang.org/>
+- **UI Components/UI组件**: shadcn/ui <https://ui.shadcn.com/>
+- **Styling/样式**: Tailwind CSS <https://tailwindcss.com/>
+- **Charts/图表**: Apache ECharts <https://echarts.apache.org/>
+- **Database/数据库**: DuckDB <https://duckdb.org/>
+- **State Management/状态管理**: Zustand <https://zustand-demo.pmnd.rs/>
+- **AI Interaction/AI交互**: Vercel AI SDK <https://vercel.com/docs/ai-sdk>
+- **File Watching/文件监控**: Chokidar <https://github.com/paulmillr/chokidar>
+- **Package Manager/包管理器**: pnpm <https://pnpm.io/>
+- **Containerization/容器化**: Docker & Docker Compose
