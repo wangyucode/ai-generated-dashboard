@@ -1,8 +1,8 @@
 # AI-Enhanced Log Analyzer / AI 驱动的日志分析器
 
-A modern, full-stack Next.js application that leverages AI to parse, analyze, and visualize HTTP access logs. It transforms raw log data into valuable data visualization dashboards through an intelligent, AI-driven workflow.
+A modern, full-stack Next.js application that leverages AI to parse, analyze, and visualize any application(like Nginx, Caddy) structured logs. It transforms raw log data into valuable data visualization dashboards through an intelligent, AI-driven workflow.
 
-这是一个现代化的全栈 Next.js 应用，利用 AI 解析、分析和可视化 HTTP 访问日志。它通过智能的AI驱动工作流，将原始日志数据转化为有价值的数据可视化面板。
+这是一个现代化的全栈 Next.js 应用，利用 AI 解析、分析和可视化任意应用(如Nginx、Caddy)的结构化日志。它通过智能的AI驱动工作流，将原始日志数据转化为有价值的数据可视化面板。
 
 ## ✨ Core Features / 核心功能
 
@@ -60,3 +60,13 @@ Create a `.env` file or configure environment variables directly in `docker-comp
 | `LOG_RETENTION_DAYS` | Number of days to keep parsed logs in the database. (日志保留天数) | `30`                       |
 | `OPENAI_API_KEY`     | API Key for the AI analysis engine. (AI 分析引擎的 API Key)        | -                          |
 | `DATABASE_URL`       | Path to the SQLite database. (SQLite 数据库路径)                   | `file:/app/data/sqlite.db` |
+
+## 🔧 Technologies Used / 技术栈
+
+- Framework: Next.js <https://nextjs.org/>
+- UI: Shadcn UI <https://ui.shadcn.com/>
+- Styling: Tailwind CSS <https://tailwindcss.com/>
+- Charting: Echarts <https://echarts.apache.org/>
+- Language: TypeScript <https://www.typescriptlang.org/>
+- Database: SQLite <https://www.sqlite.org/>
+- Docker & Docker Compose <https://www.docker.com/>
