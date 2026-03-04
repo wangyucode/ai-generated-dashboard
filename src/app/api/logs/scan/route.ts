@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import type { DuckDBMaterializedResult } from "@duckdb/node-api";
 import { NextResponse } from "next/server";
 import { getDB } from "@/lib/db";
-import type { DuckDBMaterializedResult } from "@duckdb/node-api";
 
 async function fetchAllRows(result: DuckDBMaterializedResult) {
   const rows = [];
@@ -15,7 +15,7 @@ async function fetchAllRows(result: DuckDBMaterializedResult) {
 
 export async function GET() {
   // Ensure database is initialized
-  await getDB();
+  const db = await getDB();
 
   const logsDir = path.join(process.cwd(), "logs");
 
@@ -45,32 +45,34 @@ export async function GET() {
       }),
     );
 
-    const db = await getDB();
     const conn = await db.connect();
-    
+
     // Ensure all found files exist in log_files table
     for (const f of fileStats) {
       if (f?.isFile) {
-        const filePath = path.join(logsDir, f.name);
         // Check if exists, if not, insert with UNINITIALIZED
         const checkResult = await conn.run(
           "SELECT status FROM log_files WHERE file_path = ?",
-          [filePath]
+          [f.name],
         );
         const rows = await fetchAllRows(checkResult);
         if (rows.length === 0) {
           await conn.run(
             "INSERT INTO log_files (file_path, status) VALUES (?, 'UNINITIALIZED')",
-            [filePath]
+            [f.name],
           );
         }
       }
     }
 
     // Now fetch statuses for all files
-    const allFilesResult = await conn.run("SELECT file_path, status FROM log_files");
+    const allFilesResult = await conn.run(
+      "SELECT file_path, status FROM log_files",
+    );
     const allFileRows = await fetchAllRows(allFilesResult);
-    const statusMap = new Map(allFileRows.map(r => [r[0] as string, r[1] as string]));
+    const statusMap = new Map(
+      allFileRows.map((r) => [r[0] as string, r[1] as string]),
+    );
 
     const logFiles = fileStats
       .filter((f): f is NonNullable<typeof f> => f?.isFile === true)
@@ -80,7 +82,7 @@ export async function GET() {
           name: f.name,
           size: f.size,
           mtime: f.mtime,
-          status: statusMap.get(filePath) || 'UNINITIALIZED'
+          status: statusMap.get(filePath) || "UNINITIALIZED",
         };
       });
 

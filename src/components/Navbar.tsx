@@ -1,7 +1,8 @@
 "use client";
 
-import { Terminal, RefreshCw, Loader2, FileText } from "lucide-react";
+import { FileText, Loader2, RefreshCw, Terminal } from "lucide-react";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -10,7 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useLogStore } from "@/store/useLogStore";
-import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   const { logFiles, selectedLog, setSelectedLog, fetchLogFiles, isLoading } =
@@ -40,8 +40,12 @@ export function Navbar() {
               onValueChange={(value) => setSelectedLog(value || null)}
               disabled={isLoading}
             >
-              <SelectTrigger className="w-[240px] bg-transparent">
-                <SelectValue placeholder={isLoading ? "Scanning logs..." : "Select a log file"}>
+              <SelectTrigger className="w-48 bg-transparent">
+                <SelectValue
+                  placeholder={
+                    isLoading ? "Scanning logs..." : "Select a log file"
+                  }
+                >
                   {selectedLog ? (
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-blue-500" />
