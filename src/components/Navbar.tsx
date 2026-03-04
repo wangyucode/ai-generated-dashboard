@@ -65,7 +65,7 @@ export function Navbar() {
                       <div className="flex flex-col">
                         <span className="font-medium">{file.name}</span>
                         <span className="text-[10px] text-muted-foreground">
-                          {(file.size / 1024).toFixed(1)} KB • {file.status}
+                          {(file.size / 1024).toFixed(2)} KB
                         </span>
                       </div>
                     </SelectItem>
