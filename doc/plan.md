@@ -1,6 +1,6 @@
-# AI Log Analyzer 开发计划
+# AI Log Analyzer 开发计划 (MVP Phase)
 
-本文档基于 `requirements.md` 和 `README.md` 制定，旨在将开发过程拆解为细粒度、可独立验证的步骤。
+本文档基于 `requirements.md` (MVP Update) 和 `README.md` 制定，旨在将开发过程拆解为细粒度、可独立验证的步骤。
 
 ## 阶段 1: 项目初始化与基础架构 (Initialization & Infrastructure)
 
@@ -35,33 +35,31 @@
 - [x] **任务**: 实现顶部导航栏，包含文件选择下拉菜单。
 - [x] **验证**: 能够通过下拉菜单切换当前选中的日志文件 ID。
 
-## 阶段 3: 智能化初始化流程 (AI Initialization)
+## 阶段 3: Caddy JSON 日志解析 (MVP Initialization)
 
-### 3.1 后端：读取日志样本 API
-- [ ] **任务**: 创建 API `GET /api/logs/:id/preview`，读取指定日志文件的前 100 行。
-- [ ] **验证**: API 返回日志的前 100 行文本。
+### 3.1 预定义 Caddy JSON 表结构
+- [ ] **任务**: 在 `lib/db.ts` 或单独的 `schema` 文件中定义 Caddy JSON 日志对应的 DuckDB `CREATE TABLE` 语句。
+- [ ] **验证**: 手动在 DuckDB CLI 或测试脚本中运行该语句，确认表创建成功。
 
-### 3.2 集成 AI SDK
-- [ ] **任务**: 配置 Vercel AI SDK (OpenAI Provider)。设置环境变量。
-- [ ] **验证**: 创建一个简单的测试 API，调用 AI 返回 "Hello World"。
+### 3.2 实现硬编码解析器 (Hardcoded Parser)
+- [ ] **任务**: 创建 `lib/parsers/caddy.ts`，实现读取 JSON 文件的逻辑。
+    1. 逐行读取文件 (使用流式读取以支持大文件)。
+    2. 解析每一行为 JSON 对象。
+    3. 提取关键字段 (ts, duration, request.remote_ip, request.method, request.uri, status, size, user_agent 等)。
+    4. 构造批量 `INSERT` 语句。
+- [ ] **验证**: 编写单元测试，输入几行 Caddy JSON 日志，输出正确的 SQL 插入语句。
 
-### 3.3 AI 分析与 SQL 生成 (Core)
-- [ ] **任务**: 实现 Prompt Engineering，将日志样本发送给 AI，要求返回：
-    1. `CREATE TABLE` 语句
-    2. 解析正则表达式或代码
-    3. 字段列表
-- [ ] **验证**: 针对 Nginx 日志，AI 能生成正确的建表语句和正则。
+### 3.3 后端：执行初始化 (Initialize API)
+- [ ] **任务**: 更新或创建 API `POST /api/logs/:id/initialize`。
+    1. 根据文件扩展名或内容简单判断是否为 JSON。
+    2. 调用 Caddy 解析器处理文件。
+    3. 在 DuckDB 中执行建表和数据插入。
+    4. 更新 `log_files` 表状态为 `READY`，记录 `table_name` 为 `caddy_access_logs` (或带文件 ID 后缀)。
+- [ ] **验证**: 点击前端“初始化”按钮后，数据库中出现对应的日志表且有数据。
 
-### 3.4 后端：执行初始化
-- [ ] **任务**: 创建 API `POST /api/logs/:id/initialize`。
-    1. 调用 AI 分析。
-    2. 在 DuckDB 中执行 `CREATE TABLE`。
-    3. 更新 `log_files` 表状态为 `READY`，保存解析配置。
-- [ ] **验证**: 点击初始化后，数据库中出现了对应的日志表。
-
-### 3.5 后端：数据导入 (Data Ingestion)
-- [ ] **任务**: 实现日志解析逻辑（使用 AI 生成的正则），将日志文件内容批量插入 DuckDB。
-- [ ] **验证**: 查询生成的日志表，确认有数据。
+### 3.4 前端：初始化状态反馈
+- [ ] **任务**: 在“App Info”卡片中，如果当前文件未初始化，显示“初始化”按钮；初始化中显示 Loading；完成后显示“已就绪”。
+- [ ] **验证**: 完整跑通点击初始化到状态更新的流程。
 
 ## 阶段 4: 仪表盘与基础视图 (Dashboard & Layout)
 
@@ -70,11 +68,11 @@
 - [ ] **验证**: 页面展示一个空的网格区域。
 
 ### 4.2 默认视图 (App Info)
-- [ ] **任务**: 实现 "App Info" 卡片，显示当前日志文件的统计信息（行数、时间范围）。
-- [ ] **验证**: 仪表盘默认显示该卡片，数据准确。
+- [ ] **任务**: 实现 "App Info" 卡片，显示当前日志文件的统计信息（总记录数、最早/最晚时间、常见状态码分布等）。
+- [ ] **验证**: 仪表盘默认显示该卡片，数据从 DuckDB 查询而来，准确无误。
 
 ### 4.3 数据库：视图配置表 (`views`)
-- [ ] **任务**: 创建 `views` 表，用于存储图表配置。
+- [ ] **任务**: 创建 `views` 表，用于存储图表配置 (id, log_file_id, title, query, type, layout)。
 - [ ] **验证**: 表结构正确。
 
 ## 阶段 5: 交互式视图生成 (Interactive View Generation)
@@ -83,12 +81,15 @@
 - [ ] **任务**: 在仪表盘末尾添加 "+" 号卡片，点击弹出对话框。
 - [ ] **验证**: 点击能打开对话框。
 
-### 5.2 AI 视图生成 API
-- [ ] **任务**: 创建 API `POST /api/views/generate`。接收用户 Prompt，结合表结构，让 AI 生成 SQL 查询和图表配置 (ECharts)。
-- [ ] **验证**: 输入 "统计每小时请求数"，AI 返回包含 `SELECT count(*) ... GROUP BY hour` 的 JSON。
+### 5.2 AI 视图生成 API (SQL Generation)
+- [ ] **任务**: 创建 API `POST /api/views/generate`。
+    - **Input**: 用户 Prompt (e.g., "Show me requests per hour")。
+    - **Context**: 提供 Caddy 日志表的 Schema (字段名、类型)。
+    - **Output**: AI 生成的 SQL 查询 (DuckDB 语法) 和 ECharts 配置建议。
+- [ ] **验证**: 输入 "统计每小时请求数"，AI 返回包含 `SELECT time_bucket(...)` 的 SQL。
 
 ### 5.3 动态图表渲染组件
-- [ ] **任务**: 封装 `ChartComponent`，基于 ECharts，根据传入的 type (Line, Bar) 和 data 渲染图表。
+- [ ] **任务**: 封装 `ChartComponent`，基于 ECharts，根据传入的 type (Line, Bar, Pie) 和 data 渲染图表。
 - [ ] **验证**: 手动传入 mock 数据，能渲染出图表。
 
 ### 5.4 预览与执行
@@ -98,23 +99,9 @@
 ## 阶段 6: 视图持久化与管理 (View Management)
 
 ### 6.1 保存视图
-- [ ] **任务**: 在预览对话框提供 "保存" 按钮，调用 API 将配置存入 `views` 表。
-- [ ] **验证**: 保存后，刷新页面，仪表盘上能显示新添加的图表。
+- [ ] **任务**: 在预览对话框中添加“保存”按钮，将视图配置写入 `views` 表。
+- [ ] **验证**: 保存后，仪表盘自动刷新，显示新添加的图表卡片。
 
-### 6.2 仪表盘加载视图
-- [ ] **任务**: 仪表盘加载时，从 `views` 表获取当前日志关联的所有视图并渲染。
-- [ ] **验证**: 之前保存的视图能自动加载。
-
-### 6.3 视图编辑与删除 (Optional)
-- [ ] **任务**: 允许调整视图大小或删除视图。
-- [ ] **验证**: UI 操作能同步更新数据库。
-
-## 阶段 7: 高级功能与优化 (Polish)
-
-### 7.1 文件监听 (File Watching)
-- [ ] **任务**: 集成 `chokidar`，监听 `logs/` 目录。
-- [ ] **验证**: 新增日志文件时，前端列表自动刷新；追加日志内容时，触发增量解析 (Advanced)。
-
-### 7.2 错误处理与 Loading 状态
-- [ ] **任务**: 全局添加 Loading 指示器，优化 AI 失败时的错误提示。
-- [ ] **验证**: 模拟网络延迟或 AI 错误，UI 表现友好。
+### 6.2 视图编辑与删除
+- [ ] **任务**: 允许用户调整视图大小、位置，或删除视图。
+- [ ] **验证**: 调整布局后，刷新页面布局保持不变 (需持久化布局配置)。

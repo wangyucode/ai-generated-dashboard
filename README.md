@@ -56,6 +56,19 @@ pnpm dev
 
 The application will be available at <http://localhost:3000>.
 
+## 🗺️ Roadmap / 路线图
+
+### Phase 1: MVP (Current Focus / 当前关注)
+- [ ] **Log File Management**: Automatic discovery of log files in the `logs` directory.
+- [ ] **Simplified Initialization**: Built-in support for **Caddy JSON Access Log** parsing (Skipping AI analysis for MVP).
+- [ ] **Interactive Dashboard**: Grid layout with support for custom views.
+- [ ] **AI-Powered Visualization**: Generate SQL and charts via natural language conversation.
+
+### Phase 2: Enhanced AI Automation (Future / 未来规划)
+- [ ] **Full AI Initialization**: Automatically analyze arbitrary log structures and generate parsers using AI.
+- [ ] **Universal Log Support**: Support for Nginx, Apache, and custom log formats via AI learning.
+- [ ] **Advanced Data Import**: Intelligent `CREATE TABLE` and `INSERT` generation.
+
 ## 🔧 Technologies Stack / 技术栈
 
 - **Framework/框架**: Next.js <https://nextjs.org/>
