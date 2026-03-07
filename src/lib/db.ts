@@ -9,9 +9,9 @@ import knex, { type Knex } from "knex";
  * 该数据库用于存储仪表盘配置、AI 分析结果等
  */
 
-const dbPath = path.join(process.cwd(), "data");
-if (!fs.existsSync(dbPath)) {
-  fs.mkdirSync(dbPath, { recursive: true });
+export const dataPath = path.join(process.cwd(), "data");
+if (!fs.existsSync(dataPath)) {
+  fs.mkdirSync(dataPath, { recursive: true });
 }
 
 const db: Knex =
@@ -19,7 +19,7 @@ const db: Knex =
   knex({
     client: "better-sqlite3",
     connection: {
-      filename: path.join(dbPath, "meta.db"),
+      filename: path.join(dataPath, "meta.db"),
     },
     useNullAsDefault: true,
   });

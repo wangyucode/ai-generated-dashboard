@@ -38,8 +38,8 @@ const formSchema = z.object({
   name: z.string().min(2, {
     message: "数据源名称至少包含 2 个字符",
   }),
-  path: z.string().min(1, {
-    message: "请输入数据库路径",
+  file: z.string().min(1, {
+    message: "请输入数据库文件名",
   }),
 });
 
@@ -59,7 +59,7 @@ export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
     defaultValues: {
       type: "sqlite",
       name: "",
-      path: "",
+      file: "",
     },
   });
 
@@ -68,7 +68,7 @@ export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
     try {
       const result = await addDataSource({
         name: values.name,
-        path: values.path,
+        file: values.file,
       });
 
       if (result.success && result.data) {
@@ -146,13 +146,13 @@ export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
             />
             <FormField
               control={form.control}
-              name="path"
+              name="file"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>数据库路径 (Path)</FormLabel>
+                  <FormLabel>数据库文件名 (File)</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="例如：/path/to/database.sqlite"
+                      placeholder="例如：database.sqlite"
                       {...field}
                     />
                   </FormControl>

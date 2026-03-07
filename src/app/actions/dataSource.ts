@@ -1,8 +1,9 @@
 "use server";
 
 import fs from "node:fs";
+import path from "node:path";
 import knex from "knex";
-import db, { initDatabase } from "@/lib/db";
+import db, { dataPath, initDatabase } from "@/lib/db";
 import type { DataSource } from "@/types/database";
 
 /**
@@ -23,22 +24,22 @@ export async function getDataSource(): Promise<DataSource | null> {
 
 /**
  * 添加新的数据源
- * @param payload 包含数据源名称和 SQLite 文件路径
+ * @param payload 包含数据源名称和 SQLite 文件名
  */
-export async function addDataSource(payload: { name: string; path: string }) {
+export async function addDataSource(payload: { name: string; file: string }) {
   try {
     await initDatabase();
 
     // 1. 验证 SQLite 路径是否存在
-    if (!fs.existsSync(payload.path)) {
-      throw new Error(`SQLite 数据库文件不存在: ${payload.path}`);
+    if (!fs.existsSync(path.join(dataPath, payload.file))) {
+      throw new Error(`SQLite 数据库文件不存在: ${payload.file}`);
     }
 
     // 2. 使用 knex 连接到该 SQLite 数据库，扫描 sqlite_master 获取表数量
     const targetDb = knex({
       client: "better-sqlite3",
       connection: {
-        filename: payload.path,
+        filename: payload.file,
       },
       useNullAsDefault: true,
     });
@@ -56,9 +57,9 @@ export async function addDataSource(payload: { name: string; path: string }) {
     // 3. 将信息存入 meta.db 的 data_sources 表
     const [id] = await db("data_sources").insert({
       type: "sqlite",
-      connection_info: JSON.stringify({ path: payload.path }),
+      connection_info: JSON.stringify({ file: payload.file }),
       name: payload.name,
-      database: payload.path,
+      database: payload.file,
       table_count: tableCount,
     });
 

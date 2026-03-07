@@ -37,7 +37,7 @@
 *   **任务**:
     *   `getDataSource()`: 从 `meta.db` 查询第一个（或最新一个）数据源。
     *   `addDataSource(payload)`:
-        1.  验证 SQLite 路径是否存在。
+        1.  验证 SQLite 文件是否存在。
         2.  使用 `knex` 连接到该 SQLite 数据库，扫描 `sqlite_master` 获取表数量。
         3.  将信息存入 `meta.db` 的 `data_sources` 表。
         4.  返回保存成功的数据源信息。
@@ -59,7 +59,7 @@
     *   表单项：
         *   数据库类型（目前仅限 SQLite）。
         *   别名 (Name)。
-        *   数据库 URL / 路径 (Path)。
+        *   数据库文件名 (File)。
     *   确认按钮触发 `addDataSource` server action。
 
 ### 3.5 页面集成 (`src/app/page.tsx`)
