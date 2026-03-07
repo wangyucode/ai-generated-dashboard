@@ -1,8 +1,4 @@
-"use client";
-
-import { FileText, Loader2, RefreshCw, Terminal } from "lucide-react";
-import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { Terminal } from "lucide-react";
 
 export function Navbar() {
 
