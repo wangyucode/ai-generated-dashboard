@@ -1,5 +1,6 @@
 import { tool } from "ai";
 import { createDoubao } from "doubao-ai-provider";
+import { compile, type TopLevelSpec } from "vega-lite";
 import { z } from "zod";
 import { runSqlAction } from "@/app/actions/dataSource";
 import logger from "@/lib/logger";
@@ -12,7 +13,7 @@ const doubao = createDoubao({
   }),
 });
 
-export function getAddBodyFetchFunction(extraBody: Record<string, any>) {
+export function getAddBodyFetchFunction(extraBody: Record<string, unknown>) {
   return (url: RequestInfo | URL, options?: RequestInit) => {
     if (options?.body && Object.keys(extraBody).length > 0) {
       try {
@@ -77,7 +78,23 @@ const createTools = (dbType: string, connectionInfo: unknown) => ({
       logger.info("Generating view configuration", {
         title: viewData.title,
       });
-      // 这里可以进行简单的校验或直接返回，由前端处理保存逻辑
+
+      // 验证 Vega-Lite 配置是否合法
+      try {
+        const parsedConfig = JSON.parse(viewData.viz_config);
+        // 如果是 Vega-Lite 格式，使用 compile 验证
+        compile(parsedConfig as TopLevelSpec);
+      } catch (error) {
+        logger.error(
+          { error, viz_config: viewData.viz_config },
+          "Vega-Lite validation failed",
+        );
+        return {
+          success: false,
+          error: `无效的 Vega-Lite 配置: ${error instanceof Error ? error.message : String(error)}`,
+        };
+      }
+
       return {
         success: true,
         message: "视图配置已生成",

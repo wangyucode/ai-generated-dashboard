@@ -1,9 +1,4 @@
-import {
-  convertToModelMessages,
-  hasToolCall,
-  streamText,
-  type UIMessage,
-} from "ai";
+import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createTools, doubao, MODEL_ID } from "@/lib/ai";
 import logger from "@/lib/logger";
 

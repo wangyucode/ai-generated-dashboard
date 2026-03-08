@@ -1,8 +1,12 @@
 "use client";
 
-import { Check, Layout, Loader2 } from "lucide-react";
+import { AlertCircle, Check, Layout, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { runSqlAction } from "@/app/actions/dataSource";
 import type { GenerateViewArgs } from "@/components/cards/view/steps/AIChatStep";
 import { Button } from "@/components/ui/button";
+import { VegaChart } from "@/components/VegaChart";
+import { useDataSourceStore } from "@/store/useDataSourceStore";
 
 interface GenerateViewOutput {
   data: GenerateViewArgs;
@@ -30,6 +34,44 @@ export function GenerateViewPreview({
   onSave,
   isSaving,
 }: GenerateViewPreviewProps) {
+  const { currentDataSource } = useDataSourceStore();
+  const [data, setData] = useState<Record<string, unknown>[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const output = part.output as GenerateViewOutput;
+  const generateViewArgs = output?.data;
+
+  useEffect(() => {
+    if (
+      part.state === "output-available" &&
+      generateViewArgs &&
+      currentDataSource
+    ) {
+      const fetchData = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const result = await runSqlAction(
+            currentDataSource.type,
+            JSON.parse(currentDataSource.connection_info),
+            generateViewArgs.query_sql,
+          );
+          if (result.success) {
+            setData((result.data as Record<string, unknown>[]) || []);
+          } else {
+            setError(result.error || "获取图表数据失败");
+          }
+        } catch (_e) {
+          setError("获取图表数据时出错");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchData();
+    }
+  }, [part.state, generateViewArgs, currentDataSource]);
+
   switch (part.state) {
     case "input-available":
       return (
@@ -82,6 +124,32 @@ export function GenerateViewPreview({
               <span className="font-semibold text-foreground">大小:</span>{" "}
               {generateViewArgs.layout_w} x {generateViewArgs.layout_h}
             </p>
+          </div>
+          <div className="mb-4">
+            {isLoading ? (
+              <div className="w-full h-[200px] flex flex-col items-center justify-center gap-2 bg-muted/20 rounded-lg border border-dashed animate-pulse">
+                <Loader2 className="h-6 w-6 animate-spin text-primary/40" />
+                <span className="text-xs text-muted-foreground italic">
+                  正在加载图表数据...
+                </span>
+              </div>
+            ) : error ? (
+              <div className="w-full h-[200px] flex flex-col items-center justify-center gap-2 bg-destructive/5 rounded-lg border border-destructive/20 p-4 text-center">
+                <AlertCircle className="h-6 w-6 text-destructive/40" />
+                <p className="text-xs text-destructive/80 font-medium">
+                  {error}
+                </p>
+                <code className="text-[10px] text-destructive/60 break-all max-w-full">
+                  {generateViewArgs.query_sql}
+                </code>
+              </div>
+            ) : data ? (
+              <VegaChart
+                spec={generateViewArgs.viz_config}
+                data={data}
+                height={200}
+              />
+            ) : null}
           </div>
           <Button
             size="sm"
