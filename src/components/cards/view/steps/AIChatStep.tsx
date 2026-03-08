@@ -30,7 +30,7 @@ export function AIChatStep({
   onCancel,
 }: AIChatStepProps) {
   const { currentDataSource } = useDataSourceStore();
-  const [input, setInput] = useState("帮我分析这些数据表");
+  const [input, setInput] = useState("你来推荐适合这几个表的可视化方案");
   const [isSaving, setIsSaving] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -52,7 +52,8 @@ export function AIChatStep({
       {
         body: {
           selectedTables,
-          datasourceId: currentDataSource?.id,
+          dbType: currentDataSource?.type,
+          connection_info: currentDataSource?.connection_info,
         },
       },
     );
@@ -114,9 +115,12 @@ export function AIChatStep({
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 border rounded-lg bg-muted/30">
         {messages.length === 0 && (
-          <div className="text-center text-muted-foreground py-8">
+          <div className="text-center text-muted-foreground py-8 text-sm">
             <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-20" />
-            <p>你好！我是 AI 助手，有什么我可以帮你的吗？</p>
+            <p>
+              你好！我是 AI
+              数据分析师，直接说出你关于选择表格的可视化需求，我会直接帮你生成对应的可视化图表。
+            </p>
           </div>
         )}
         {messages.map((m) => (

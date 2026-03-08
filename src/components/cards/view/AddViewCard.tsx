@@ -47,9 +47,9 @@ export function AddViewCard() {
             colSpan={1}
             rowSpan={1}
           >
-            <div className="flex flex-col items-center justify-center h-full min-h-[120px] border-2 border-dashed border-muted-foreground/20 rounded-lg hover:border-primary/50 transition-colors group/add">
+            <div className="flex flex-col items-center justify-center h-full border-2 border-dashed border-muted-foreground/20 rounded-lg hover:border-primary/50 transition-colors group/add">
               <Plus className="h-8 w-8 text-muted-foreground group-hover/add:text-primary transition-colors" />
-              <span className="text-xs text-muted-foreground mt-2 group-hover/add:text-primary">
+              <span className="text-xs text-muted-foreground group-hover/add:text-primary">
                 点击添加
               </span>
             </div>

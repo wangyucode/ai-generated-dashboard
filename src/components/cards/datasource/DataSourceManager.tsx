@@ -40,8 +40,8 @@ export function DataSourceManager() {
           ? "当前已连接的数据源信息"
           : "连接数据库以开始 AI 数据分析"
       }
-      rowSpan={2}
-      colSpan={2}
+      colSpan={1}
+      rowSpan={1}
       order={-1}
       onDelete={currentDataSource ? handleDelete : undefined}
     >

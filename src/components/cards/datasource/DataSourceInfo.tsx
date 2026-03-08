@@ -18,7 +18,7 @@ export function DataSourceInfo({ dataSource }: DataSourceInfoProps) {
   );
 
   return (
-    <div className="flex flex-col gap-4 py-4">
+    <div className="flex flex-col gap-4 py-4 justify-between">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
@@ -33,13 +33,7 @@ export function DataSourceInfo({ dataSource }: DataSourceInfoProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-        <div className="flex items-center gap-2 text-sm text-zinc-600">
-          <MapPin className="h-4 w-4 text-zinc-400" />
-          <span className="truncate" title={dataSource.database}>
-            {dataSource.database}
-          </span>
-        </div>
+      <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-zinc-600">
           <Table className="h-4 w-4 text-zinc-400" />
           <span>{dataSource.table_count} 个数据表</span>

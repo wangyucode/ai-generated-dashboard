@@ -2,9 +2,14 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import knex from "knex";
 import { revalidatePath } from "next/cache";
-import db, { dataPath, initDatabase } from "@/lib/db";
+import {
+  dataPath,
+  getDatasourceDbInstance,
+  getMetaDbInstance,
+  initDatabase,
+} from "@/lib/db";
+import logger from "@/lib/logger";
 import type { DataSource } from "@/types/database";
 
 /**
@@ -13,12 +18,13 @@ import type { DataSource } from "@/types/database";
 export async function getDataSource(): Promise<DataSource | null> {
   try {
     await initDatabase();
+    const db = getMetaDbInstance();
     const dataSource = await db<DataSource>("data_sources")
       .orderBy("id", "desc")
       .first();
     return dataSource || null;
   } catch (error) {
-    console.error("Failed to get data source:", error);
+    logger.error({ error }, "Failed to get data source");
     return null;
   }
 }
@@ -29,21 +35,21 @@ export async function getDataSource(): Promise<DataSource | null> {
  */
 export async function addDataSource(payload: { name: string; file: string }) {
   try {
-    await initDatabase();
-
+    logger.info(
+      { name: payload.name, file: payload.file },
+      "Adding new data source",
+    );
     // 1. 验证 SQLite 路径是否存在
     if (!fs.existsSync(path.join(dataPath, "db", payload.file))) {
+      logger.error(
+        { file: payload.file },
+        "SQLite database file does not exist",
+      );
       throw new Error(`SQLite 数据库文件不存在: ${payload.file}`);
     }
 
-    // 2. 使用 knex 连接到该 SQLite 数据库，扫描 sqlite_master 获取表数量
-    const targetDb = knex({
-      client: "better-sqlite3",
-      connection: {
-        filename: path.join(dataPath, "db", payload.file),
-      },
-      useNullAsDefault: true,
-    });
+    // 2. 使用 getDatasourceDbInstance 连接到该 SQLite 数据库
+    const targetDb = getDatasourceDbInstance({ file: payload.file }, "sqlite");
 
     let tableCount = 0;
     try {
@@ -51,11 +57,16 @@ export async function addDataSource(payload: { name: string; file: string }) {
         .where("type", "table")
         .whereNot("name", "like", "sqlite_%");
       tableCount = tables.length;
+      logger.debug(
+        { file: payload.file, tableCount },
+        "Connected to database and counted tables",
+      );
     } finally {
       await targetDb.destroy();
     }
 
     // 3. 将信息存入 meta.db 的 data_sources 表
+    const db = getMetaDbInstance();
     const [id] = await db("data_sources").insert({
       type: "sqlite",
       connection_info: JSON.stringify({ file: payload.file }),
@@ -69,6 +80,7 @@ export async function addDataSource(payload: { name: string; file: string }) {
       .where("id", id)
       .first();
 
+    logger.info({ id, name: payload.name }, "Data source added successfully");
     revalidatePath("/");
     return {
       success: true,
@@ -76,7 +88,7 @@ export async function addDataSource(payload: { name: string; file: string }) {
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "添加数据源失败";
-    console.error("Failed to add data source:", error);
+    logger.error({ error, payload }, "Failed to add data source");
     return {
       success: false,
       error: message,
@@ -90,7 +102,7 @@ export async function addDataSource(payload: { name: string; file: string }) {
  */
 export async function getTables(id: number) {
   try {
-    await initDatabase();
+    const db = getMetaDbInstance();
     const dataSource = await db<DataSource>("data_sources")
       .where("id", id)
       .first();
@@ -100,13 +112,7 @@ export async function getTables(id: number) {
     }
 
     const connectionInfo = JSON.parse(dataSource.connection_info);
-    const targetDb = knex({
-      client: "better-sqlite3",
-      connection: {
-        filename: path.join(dataPath, "db", connectionInfo.file),
-      },
-      useNullAsDefault: true,
-    });
+    const targetDb = getDatasourceDbInstance(connectionInfo, dataSource.type);
 
     try {
       const tables = await targetDb("sqlite_master")
@@ -140,7 +146,7 @@ export async function getTableSchemas(
   tableNames: string[],
 ) {
   try {
-    await initDatabase();
+    const db = getMetaDbInstance();
     const dataSource = await db<DataSource>("data_sources")
       .where("id", dataSourceId)
       .first();
@@ -150,15 +156,10 @@ export async function getTableSchemas(
     }
 
     const connectionInfo = JSON.parse(dataSource.connection_info);
-    const targetDb = knex({
-      client: "better-sqlite3",
-      connection: {
-        filename: path.join(dataPath, "db", connectionInfo.file),
-      },
-      useNullAsDefault: true,
-    });
+    const targetDb = getDatasourceDbInstance(connectionInfo, dataSource.type);
 
     try {
+      // biome-ignore lint/suspicious/noExplicitAny: columns from PRAGMA table_info
       const schemas: Record<string, any[]> = {};
       for (const tableName of tableNames) {
         const columns = await targetDb.raw(`PRAGMA table_info(${tableName})`);
@@ -184,28 +185,17 @@ export async function getTableSchemas(
 
 /**
  * 执行 SQL 语句并返回结果
- * @param dataSourceId 数据源 ID
+ * @param dbType 数据库类型
+ * @param connection_info 数据库连接信息
  * @param sql SQL 语句
  */
-export async function runSql(dataSourceId: number, sql: string) {
+export async function runSqlAction(
+  dbType: string,
+  connectionInfo: Record<string, string>,
+  sql: string,
+) {
   try {
-    await initDatabase();
-    const dataSource = await db<DataSource>("data_sources")
-      .where("id", dataSourceId)
-      .first();
-
-    if (!dataSource) {
-      throw new Error("数据源不存在");
-    }
-
-    const connectionInfo = JSON.parse(dataSource.connection_info);
-    const targetDb = knex({
-      client: "better-sqlite3",
-      connection: {
-        filename: path.join(dataPath, "db", connectionInfo.file),
-      },
-      useNullAsDefault: true,
-    });
+    const targetDb = getDatasourceDbInstance(connectionInfo, dbType);
 
     try {
       // 执行 SQL
@@ -233,6 +223,7 @@ export async function runSql(dataSourceId: number, sql: string) {
  */
 export async function deleteDataSource(id: number) {
   try {
+    const db = getMetaDbInstance();
     await db("data_sources").where("id", id).delete();
     revalidatePath("/");
     return { success: true };

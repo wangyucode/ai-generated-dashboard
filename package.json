@@ -19,6 +19,7 @@
     "better-sqlite3": "^12.6.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "consola": "^3.4.2",
     "doubao-ai-provider": "^1.0.2",
     "knex": "^3.1.0",
     "lucide-react": "^0.577.0",
