@@ -1,5 +1,5 @@
 import { getDataSource } from "@/app/actions/dataSource";
-import { DataSourceManager } from "@/components/DataSourceManager";
+import { DataSourceManager } from "@/components/cards/datasource/DataSourceManager";
 import { StoreInitializer } from "@/components/StoreInitializer";
 
 export default async function Home() {

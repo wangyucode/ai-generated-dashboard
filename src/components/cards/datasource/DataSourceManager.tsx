@@ -1,14 +1,21 @@
 "use client";
 
 import { useDataSourceStore } from "@/store/useDataSourceStore";
-import { DashboardCard } from "./DashboardCard";
+import { DashboardCard } from "../../DashboardCard";
 import { DataSourceInfo } from "./DataSourceInfo";
 import { NoDataSourceFound } from "./NoDataSourceFound";
 
 export function DataSourceManager() {
-  const currentDataSource = useDataSourceStore(
-    (state) => state.currentDataSource,
-  );
+  const { currentDataSource, setCurrentDataSource } = useDataSourceStore();
+
+  const handleDelete = () => {
+    setCurrentDataSource(null);
+  };
+
+  const handleSettings = () => {
+    // 设置逻辑
+    console.log("Settings clicked for", currentDataSource?.name);
+  };
 
   return (
     <DashboardCard
@@ -20,6 +27,8 @@ export function DataSourceManager() {
       }
       colSpan={3}
       order={-1}
+      onDelete={currentDataSource ? handleDelete : undefined}
+      onSettings={currentDataSource ? handleSettings : undefined}
     >
       {currentDataSource ? (
         <DataSourceInfo dataSource={currentDataSource} />

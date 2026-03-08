@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+import { Settings, Trash2 } from "lucide-react";
+import React, { type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -14,6 +16,8 @@ interface DashboardCardProps {
   rowSpan?: number;
   order?: number;
   children: ReactNode;
+  onDelete?: () => void;
+  onSettings?: () => void;
 }
 
 export function DashboardCard({
@@ -23,6 +27,8 @@ export function DashboardCard({
   rowSpan = 1,
   order = 0,
   children,
+  onDelete,
+  onSettings,
 }: DashboardCardProps) {
   return (
     <Card
@@ -31,19 +37,51 @@ export function DashboardCard({
         gridRow: rowSpan ? `span ${rowSpan}` : undefined,
         order: order,
       }}
-      className="flex flex-col h-full"
+      className="flex flex-col h-full group"
     >
-      <CardHeader className="p-0 px-6">
-        <CardTitle className="text-sm font-semibold tracking-tight">
-          {title}
-        </CardTitle>
-        {desc && (
-          <CardDescription className="text-xs text-muted-foreground">
-            {desc}
-          </CardDescription>
-        )}
+      <CardHeader className="p-0 px-6 flex flex-row items-start justify-between space-y-0 py-4">
+        <div className="flex flex-col space-y-1 pr-4">
+          <CardTitle className="text-sm font-semibold tracking-tight leading-none mt-1">
+            {title}
+          </CardTitle>
+          {desc && (
+            <CardDescription className="text-xs text-muted-foreground">
+              {desc}
+            </CardDescription>
+          )}
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          {onSettings && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              onClick={onSettings}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          )}
+          {onDelete && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              onClick={onDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </CardHeader>
-      <CardContent className="flex-1 p-0 px-6">{children}</CardContent>
+      <CardContent className="flex-1 p-0 px-6">
+        {React.Children.map(children, (child) => {
+          if (React.isValidElement(child)) {
+            // @ts-expect-error - 允许将 onDelete 和 onSettings 传递给子组件
+            return React.cloneElement(child, { onDelete, onSettings });
+          }
+          return child;
+        })}
+      </CardContent>
     </Card>
   );
 }

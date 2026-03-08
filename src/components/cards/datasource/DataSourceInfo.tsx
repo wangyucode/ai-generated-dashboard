@@ -1,15 +1,19 @@
 "use client";
 
-import { Calendar, Database, MapPin, Pencil, Table } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Calendar, Database, MapPin, Table } from "lucide-react";
 import type { DataSource } from "@/types/database";
-import { AddDataSourceDialog } from "./AddDataSourceDialog";
 
 interface DataSourceInfoProps {
   dataSource: DataSource;
+  onDelete?: () => void;
+  onSettings?: () => void;
 }
 
-export function DataSourceInfo({ dataSource }: DataSourceInfoProps) {
+export function DataSourceInfo({
+  dataSource,
+  onDelete,
+  onSettings,
+}: DataSourceInfoProps) {
   const createdDate = new Date(dataSource.created_at).toLocaleDateString(
     "zh-CN",
     {
@@ -33,15 +37,6 @@ export function DataSourceInfo({ dataSource }: DataSourceInfoProps) {
             </p>
           </div>
         </div>
-        <AddDataSourceDialog>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-zinc-400 hover:text-blue-600"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-        </AddDataSourceDialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">

@@ -31,7 +31,7 @@ export async function addDataSource(payload: { name: string; file: string }) {
     await initDatabase();
 
     // 1. 验证 SQLite 路径是否存在
-    if (!fs.existsSync(path.join(dataPath, payload.file))) {
+    if (!fs.existsSync(path.join(dataPath, "db", payload.file))) {
       throw new Error(`SQLite 数据库文件不存在: ${payload.file}`);
     }
 
@@ -46,9 +46,7 @@ export async function addDataSource(payload: { name: string; file: string }) {
 
     let tableCount = 0;
     try {
-      const tables = await targetDb("sqlite_master")
-        .where("type", "table")
-        .whereNot("name", "like", "sqlite_%");
+      const tables = await targetDb("sqlite_master").where("type", "table");
       tableCount = tables.length;
     } finally {
       await targetDb.destroy();
