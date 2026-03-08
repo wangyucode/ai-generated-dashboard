@@ -5,15 +5,9 @@ import type { DataSource } from "@/types/database";
 
 interface DataSourceInfoProps {
   dataSource: DataSource;
-  onDelete?: () => void;
-  onSettings?: () => void;
 }
 
-export function DataSourceInfo({
-  dataSource,
-  onDelete,
-  onSettings,
-}: DataSourceInfoProps) {
+export function DataSourceInfo({ dataSource }: DataSourceInfoProps) {
   const createdDate = new Date(dataSource.created_at).toLocaleDateString(
     "zh-CN",
     {

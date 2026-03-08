@@ -6,7 +6,7 @@ import { AddDataSourceDialog } from "./AddDataSourceDialog";
 
 export function NoDataSourceFound() {
   return (
-    <div className="flex flex-col items-center justify-center py-10 text-center">
+    <div className="flex flex-col items-center justify-center py-4 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
         <Database className="h-6 w-6 text-blue-600" />
       </div>

@@ -55,7 +55,7 @@ export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
   );
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema as any),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       type: "sqlite",
       name: "",
@@ -151,10 +151,7 @@ export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
                 <FormItem>
                   <FormLabel>数据库文件名 (File)</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="例如：database.sqlite"
-                      {...field}
-                    />
+                    <Input placeholder="例如：database.sqlite" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

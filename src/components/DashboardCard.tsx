@@ -1,5 +1,5 @@
 import { Settings, Trash2 } from "lucide-react";
-import React, { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -73,15 +73,7 @@ export function DashboardCard({
           )}
         </div>
       </CardHeader>
-      <CardContent className="flex-1 p-0 px-6">
-        {React.Children.map(children, (child) => {
-          if (React.isValidElement(child)) {
-            // @ts-expect-error - 允许将 onDelete 和 onSettings 传递给子组件
-            return React.cloneElement(child, { onDelete, onSettings });
-          }
-          return child;
-        })}
-      </CardContent>
+      <CardContent className="flex-1 p-0 px-6">{children}</CardContent>
     </Card>
   );
 }

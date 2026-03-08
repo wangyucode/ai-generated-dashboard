@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import knex from "knex";
+import { revalidatePath } from "next/cache";
 import db, { dataPath, initDatabase } from "@/lib/db";
 import type { DataSource } from "@/types/database";
 
@@ -39,7 +40,7 @@ export async function addDataSource(payload: { name: string; file: string }) {
     const targetDb = knex({
       client: "better-sqlite3",
       connection: {
-        filename: payload.file,
+        filename: path.join(dataPath, "db", payload.file),
       },
       useNullAsDefault: true,
     });
@@ -66,15 +67,36 @@ export async function addDataSource(payload: { name: string; file: string }) {
       .where("id", id)
       .first();
 
+    revalidatePath("/");
     return {
       success: true,
       data: newDataSource,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "添加数据源失败";
     console.error("Failed to add data source:", error);
     return {
       success: false,
-      error: error.message || "添加数据源失败",
+      error: message,
+    };
+  }
+}
+
+/**
+ * 删除数据源
+ * @param id 数据源 ID
+ */
+export async function deleteDataSource(id: number) {
+  try {
+    await db("data_sources").where("id", id).delete();
+    revalidatePath("/");
+    return { success: true };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "删除数据源失败";
+    console.error("Failed to delete data source:", error);
+    return {
+      success: false,
+      error: message,
     };
   }
 }
