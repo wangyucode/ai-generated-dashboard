@@ -49,21 +49,28 @@ export function getDatasourceDbInstance(
   ) {
     throw new Error("Invalid connectionInfo object");
   }
-  const filename = path.join(dataPath, "db", (connectionInfo as any).file);
-  logger.debug("Creating new datasource DB instance", {
-    filename,
-    dbType,
-  });
-  return knex({
-    client: "better-sqlite3",
-    connection: {
-      filename,
-      options: {
-        readonly: true,
+  const file = (connectionInfo as any).file;
+  if (!(global as any).dataDb) {
+    (global as any).dataDb = {};
+  }
+  if (!(file in (global as any).dataDb)) {
+    const filename = path.join(dataPath, "db", file);
+    (global as any).dataDb[file] = knex({
+      client: "better-sqlite3",
+      connection: {
+        filename,
+        options: {
+          readonly: true,
+        },
       },
-    },
-    useNullAsDefault: true,
-  });
+      useNullAsDefault: true,
+    });
+    logger.debug("Created new datasource DB instance", {
+      filename,
+      dbType,
+    });
+  }
+  return (global as any).dataDb[file];
 }
 
 /**

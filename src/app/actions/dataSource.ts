@@ -50,19 +50,14 @@ export async function addDataSource(payload: { name: string; file: string }) {
     // 2. 使用 getDatasourceDbInstance 连接到该 SQLite 数据库
     const targetDb = getDatasourceDbInstance({ file: payload.file }, "sqlite");
 
-    let tableCount = 0;
-    try {
-      const tables = await targetDb("sqlite_master")
-        .where("type", "table")
-        .whereNot("name", "like", "sqlite_%");
-      tableCount = tables.length;
-      logger.debug("Connected to database and counted tables", {
-        file: payload.file,
-        tableCount,
-      });
-    } finally {
-      await targetDb.destroy();
-    }
+    const tables = await targetDb("sqlite_master")
+      .where("type", "table")
+      .whereNot("name", "like", "sqlite_%");
+    const tableCount = tables.length;
+    logger.debug("Connected to database and counted tables", {
+      file: payload.file,
+      tableCount,
+    });
 
     // 3. 将信息存入 meta.db 的 data_sources 表
     const db = getMetaDbInstance();
@@ -113,18 +108,14 @@ export async function getTables(id: number) {
     const connectionInfo = JSON.parse(dataSource.connection_info);
     const targetDb = getDatasourceDbInstance(connectionInfo, dataSource.type);
 
-    try {
-      const tables = await targetDb("sqlite_master")
-        .where("type", "table")
-        .whereNot("name", "like", "sqlite_%")
-        .select("name");
-      return {
-        success: true,
-        data: tables.map((t) => t.name),
-      };
-    } finally {
-      await targetDb.destroy();
-    }
+    const tables = await targetDb("sqlite_master")
+      .where("type", "table")
+      .whereNot("name", "like", "sqlite_%")
+      .select("name");
+    return {
+      success: true,
+      data: tables.map((t) => t.name),
+    };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "获取表列表失败";
     console.error("Failed to get tables:", error);
@@ -157,20 +148,16 @@ export async function getTableSchemas(
     const connectionInfo = JSON.parse(dataSource.connection_info);
     const targetDb = getDatasourceDbInstance(connectionInfo, dataSource.type);
 
-    try {
-      // biome-ignore lint/suspicious/noExplicitAny: columns from PRAGMA table_info
-      const schemas: Record<string, any[]> = {};
-      for (const tableName of tableNames) {
-        const columns = await targetDb.raw(`PRAGMA table_info(${tableName})`);
-        schemas[tableName] = columns;
-      }
-      return {
-        success: true,
-        data: schemas,
-      };
-    } finally {
-      await targetDb.destroy();
+    // biome-ignore lint/suspicious/noExplicitAny: columns from PRAGMA table_info
+    const schemas: Record<string, any[]> = {};
+    for (const tableName of tableNames) {
+      const columns = await targetDb.raw(`PRAGMA table_info(${tableName})`);
+      schemas[tableName] = columns;
     }
+    return {
+      success: true,
+      data: schemas,
+    };
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "获取表 Schema 失败";
@@ -196,16 +183,12 @@ export async function runSqlAction(
   try {
     const targetDb = getDatasourceDbInstance(connectionInfo, dbType);
 
-    try {
-      // 执行 SQL
-      const result = await targetDb.raw(sql);
-      return {
-        success: true,
-        data: result,
-      };
-    } finally {
-      await targetDb.destroy();
-    }
+    // 执行 SQL
+    const result = await targetDb.raw(sql);
+    return {
+      success: true,
+      data: result,
+    };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "SQL 执行失败";
     console.error("Failed to run SQL:", error, sql);
