@@ -13,7 +13,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { saveView } from "@/app/actions/view";
 import { Markdown } from "@/components/Markdown";
-import { type SqlResult, SqlResultTable } from "@/components/SqlResultTable";
+import { RunSqlMessage } from "@/components/messages/RunSqlMessage";
+import { ThinkingProcess } from "@/components/messages/ThinkingProcess";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -138,187 +139,143 @@ export function AIChatStep({
             </p>
           </div>
         )}
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={cn(
-              "flex w-full flex-col gap-2 rounded-lg px-3 py-2 text-sm break-words",
-              m.role === "user"
-                ? "ml-auto max-w-[85%] bg-primary text-primary-foreground"
-                : "bg-background border shadow-sm max-w-[95%]",
-            )}
-          >
-            <div className="flex items-center gap-2">
-              {m.role === "assistant" && (
-                <Sparkles className="h-3 w-3 text-primary" />
+        {messages.map((m) => {
+          return (
+            <div
+              key={m.id}
+              className={cn(
+                "flex w-full flex-col gap-2 rounded-lg px-3 py-2 text-sm break-words",
+                m.role === "user"
+                  ? "ml-auto max-w-[85%] bg-primary text-primary-foreground"
+                  : "bg-background border shadow-sm max-w-[95%]",
               )}
-              <span className="font-semibold">
-                {m.role === "user" ? "你" : "AI 助手"}
-              </span>
-            </div>
-            <div className="leading-relaxed">
-              {m.parts.map((part, index) => {
-                if (part.type === "reasoning") {
-                  return (
-                    <div
-                      key={`${m.id}-part-${index}`}
-                      className="text-xs text-muted-foreground italic bo"
-                    >
-                      {part.text}
-                    </div>
-                  );
-                } else if (part.type === "text") {
-                  return (
-                    <Markdown
-                      key={`${m.id}-part-${index}`}
-                      content={part.text}
-                      role={m.role}
-                    />
-                  );
-                } else if (part.type === "tool-generateView") {
-                  switch (part.state) {
-                    case "input-available":
-                      return (
-                        <div
-                          key={`${m.id}-part-${index}`}
-                          className="my-2 p-4 border rounded-lg bg-primary/5 border-primary/20"
-                        >
-                          <div className="flex items-center gap-2 mb-2 text-primary font-medium">
-                            <Layout className="h-4 w-4" />
-                            <span>正在生成视图配置...</span>
+            >
+              <div className="flex items-center gap-2">
+                {m.role === "assistant" && (
+                  <Sparkles className="h-3 w-3 text-primary" />
+                )}
+                <span className="font-semibold">
+                  {m.role === "user" ? "你" : "AI 助手"}
+                </span>
+              </div>
+              <div className="leading-relaxed">
+                {m.parts.map((part, index) => {
+                  if (part.type === "reasoning") {
+                    return (
+                      <ThinkingProcess
+                        key={`${m.id}-part-${index}`}
+                        text={part.text}
+                        state={part.state}
+                      />
+                    );
+                  } else if (part.type === "text") {
+                    return (
+                      <Markdown
+                        key={`${m.id}-part-${index}`}
+                        content={part.text}
+                        role={m.role}
+                      />
+                    );
+                  } else if (part.type === "tool-generateView") {
+                    switch (part.state) {
+                      case "input-available":
+                        return (
+                          <div
+                            key={`${m.id}-part-${index}`}
+                            className="my-2 p-4 border rounded-lg bg-primary/5 border-primary/20"
+                          >
+                            <div className="flex items-center gap-2 mb-2 text-primary font-medium">
+                              <Layout className="h-4 w-4" />
+                              <span>正在生成视图配置...</span>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    case "output-available": {
-                      const generateViewArgs = part.output as GenerateViewArgs;
-                      return (
-                        <div
-                          key={`${m.id}-part-${index}`}
-                          className="my-2 p-4 border rounded-lg bg-primary/5 border-primary/20"
-                        >
-                          <div className="flex items-center gap-2 mb-2 text-primary font-medium">
-                            <Layout className="h-4 w-4" />
-                            <span>拟生成的视图配置</span>
-                          </div>
-                          <div className="space-y-1 mb-4 text-xs text-muted-foreground">
-                            <p>
-                              <span className="font-semibold text-foreground">
-                                标题:
-                              </span>{" "}
-                              {generateViewArgs.title}
-                            </p>
-                            <p>
-                              <span className="font-semibold text-foreground">
-                                类型:
-                              </span>{" "}
-                              {generateViewArgs.type}
-                            </p>
-                            {generateViewArgs.description && (
+                        );
+                      case "output-available": {
+                        const generateViewArgs =
+                          part.output as GenerateViewArgs;
+                        return (
+                          <div
+                            key={`${m.id}-part-${index}`}
+                            className="my-2 p-4 border rounded-lg bg-primary/5 border-primary/20"
+                          >
+                            <div className="flex items-center gap-2 mb-2 text-primary font-medium">
+                              <Layout className="h-4 w-4" />
+                              <span>拟生成的视图配置</span>
+                            </div>
+                            <div className="space-y-1 mb-4 text-xs text-muted-foreground">
                               <p>
                                 <span className="font-semibold text-foreground">
-                                  描述:
+                                  标题:
                                 </span>{" "}
-                                {generateViewArgs.description}
+                                {generateViewArgs.title}
                               </p>
-                            )}
+                              <p>
+                                <span className="font-semibold text-foreground">
+                                  类型:
+                                </span>{" "}
+                                {generateViewArgs.type}
+                              </p>
+                              {generateViewArgs.description && (
+                                <p>
+                                  <span className="font-semibold text-foreground">
+                                    描述:
+                                  </span>{" "}
+                                  {generateViewArgs.description}
+                                </p>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              className="w-full"
+                              onClick={() =>
+                                handleSaveView(
+                                  generateViewArgs.toolCallId,
+                                  generateViewArgs,
+                                )
+                              }
+                              disabled={isSaving}
+                            >
+                              {isSaving ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              ) : (
+                                <Check className="h-4 w-4 mr-2" />
+                              )}
+                              保存视图到仪表盘
+                            </Button>
                           </div>
-                          <Button
-                            size="sm"
-                            className="w-full"
-                            onClick={() =>
-                              handleSaveView(
-                                generateViewArgs.toolCallId,
-                                generateViewArgs,
-                              )
-                            }
-                            disabled={isSaving}
+                        );
+                      }
+                      case "output-error":
+                        return (
+                          <div
+                            key={`${m.id}-part-${index}`}
+                            className="text-destructive text-sm my-2"
                           >
-                            {isSaving ? (
-                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            ) : (
-                              <Check className="h-4 w-4 mr-2" />
-                            )}
-                            保存视图到仪表盘
-                          </Button>
-                        </div>
-                      );
+                            Error: {part.errorText}
+                          </div>
+                        );
+                      default:
+                        return null;
                     }
-                    case "output-error":
-                      return (
-                        <div
-                          key={`${m.id}-part-${index}`}
-                          className="text-destructive text-sm my-2"
-                        >
-                          Error: {part.errorText}
-                        </div>
-                      );
-                    default:
-                      return null;
+                  } else if (part.type === "tool-runSql") {
+                    return (
+                      <RunSqlMessage
+                        key={`${m.id}-part-${index}`}
+                        part={part}
+                        messageId={m.id}
+                        index={index}
+                      />
+                    );
                   }
-                }
-
-                if (part.type === "tool-runSql") {
-                  switch (part.state) {
-                    case "input-available":
-                      return (
-                        <div
-                          key={`${m.id}-part-${index}`}
-                          className="my-2 p-2 border rounded bg-muted/50 text-[10px] font-mono"
-                        >
-                          <div className="text-muted-foreground mb-1">
-                            正在执行 SQL...
-                            <code className="text-foreground">
-                              {(part.input as { sql: string }).sql}
-                            </code>
-                          </div>
-                        </div>
-                      );
-                    case "output-available": {
-                      const sqlResult = part.output as SqlResult;
-                      return (
-                        <div
-                          key={`${m.id}-part-${index}`}
-                          className="my-2 p-2 border rounded bg-muted/50 text-[10px] font-mono"
-                        >
-                          <div className="text-muted-foreground mb-1">
-                            执行 SQL:
-                            <code className="text-foreground">
-                              {(part.input as { sql: string }).sql}
-                            </code>
-                          </div>
-                          <div className="bg-background rounded border overflow-hidden max-h-[300px]">
-                            {sqlResult?.success ? (
-                              <SqlResultTable data={sqlResult.data || []} />
-                            ) : (
-                              <div className="text-destructive text-sm p-2">
-                                Error: {sqlResult?.error || "未知错误"}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    }
-                    case "output-error":
-                      return (
-                        <div
-                          key={`${m.id}-part-${index}`}
-                          className="text-destructive text-sm my-2"
-                        >
-                          Error: {part.errorText}
-                        </div>
-                      );
-                    default:
-                      return null;
-                  }
-                }
-                return null;
-              })}
-              {m.role === "assistant" && m.parts.length === 0 && (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              )}
+                  return null;
+                })}
+                {m.role === "assistant" && m.parts.length === 0 && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {error && (
           <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 rounded-lg border border-destructive/20">
             <AlertCircle className="h-4 w-4" />
@@ -327,8 +284,6 @@ export function AIChatStep({
         )}
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Input Area */}
       <form onSubmit={handleFormSubmit} className="mt-4 flex gap-2">
         <Button
           type="button"

@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       "\n" +
       "### 约束条件：\n" +
       "- 只能执行查询语句，不能执行 DML 语句 (INSERT, UPDATE, DELETE)。\n" +
-      "- 返回给用户的信息应友好且专业。\n";
+      "- 一次仅返回一个可视化视图。\n";
 
     const connectionInfo = JSON.parse(connection_info);
     const tools = createTools(dbType, connectionInfo);
