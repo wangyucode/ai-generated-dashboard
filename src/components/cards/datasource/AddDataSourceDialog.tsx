@@ -36,13 +36,18 @@ import { useDataSourceStore } from "@/store/useDataSourceStore";
 import { AdminPasswordDialog } from "../../AdminPasswordDialog";
 
 const formSchema = z.object({
-  type: z.enum(["sqlite"]),
+  type: z.enum(["sqlite", "mysql", "postgresql"]),
   name: z.string().min(2, {
     message: "数据源名称至少包含 2 个字符",
   }),
-  file: z.string().min(1, {
-    message: "请输入数据库文件名",
-  }),
+  // SQLite fields
+  file: z.string().optional(),
+  // MySQL/PostgreSQL fields
+  host: z.string().optional(),
+  port: z.string().optional(),
+  user: z.string().optional(),
+  password: z.string().optional(),
+  database: z.string().optional(),
 });
 
 interface AddDataSourceDialogProps {
@@ -64,16 +69,37 @@ export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
       type: "sqlite",
       name: "",
       file: "",
+      host: "localhost",
+      port: "",
+      user: "",
+      password: "",
+      database: "",
     },
   });
+
+  const dbType = form.watch("type");
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     withAdminAuth(async () => {
       setLoading(true);
       try {
+        let connectionInfo: any = {};
+        if (values.type === "sqlite") {
+          connectionInfo = { file: values.file };
+        } else {
+          connectionInfo = {
+            host: values.host,
+            port: values.port ? parseInt(values.port) : undefined,
+            user: values.user,
+            password: values.password,
+            database: values.database,
+          };
+        }
+
         const result = await addDataSource({
           name: values.name,
-          file: values.file,
+          type: values.type,
+          connectionInfo,
         });
 
         if (result.success && result.data) {
@@ -110,7 +136,7 @@ export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
           <DialogHeader>
             <DialogTitle>添加数据源</DialogTitle>
             <DialogDescription>
-              连接到一个本地 SQLite 数据库以开始 AI 数据分析。
+              连接到一个数据库以开始 AI 数据分析。
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -122,7 +148,11 @@ export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
                   <FormItem>
                     <FormLabel>数据库类型</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        if (val === "mysql") form.setValue("port", "3306");
+                        if (val === "postgresql") form.setValue("port", "5432");
+                      }}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -132,6 +162,8 @@ export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="sqlite">SQLite</SelectItem>
+                        <SelectItem value="mysql">MySQL</SelectItem>
+                        <SelectItem value="postgresql">PostgreSQL</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -143,27 +175,101 @@ export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>别名 (Name)</FormLabel>
+                    <FormLabel>数据源名称</FormLabel>
                     <FormControl>
-                      <Input placeholder="例如：我的销售数据" {...field} />
+                      <Input placeholder="例如：销售数据" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="file"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>数据库文件名 (File)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="例如：database.sqlite" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
+              {dbType === "sqlite" ? (
+                <FormField
+                  control={form.control}
+                  name="file"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>数据库文件名 (File)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="例如：database.sqlite" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="host"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>主机 (Host)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="localhost" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="port"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>端口 (Port)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="3306" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="user"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>用户名 (User)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="root" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>密码 (Password)</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="database"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>数据库名 (Database)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="my_database" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
               {form.formState.errors.root && (
                 <p className="text-sm font-medium text-destructive">
                   {form.formState.errors.root.message}

@@ -38,39 +38,59 @@ export function getMetaDbInstance(): Knex {
  * @param filename SQLite 数据库文件名
  */
 export function getDatasourceDbInstance(
-  connectionInfo: unknown,
+  connectionInfo: any,
   dbType: string,
 ): Knex {
-  if (
-    dbType !== "sqlite" ||
-    typeof connectionInfo !== "object" ||
-    connectionInfo === null ||
-    !("file" in connectionInfo)
-  ) {
-    throw new Error("Invalid connectionInfo object");
-  }
-  const file = (connectionInfo as any).file;
   if (!(global as any).dataDb) {
     (global as any).dataDb = {};
   }
-  if (!(file in (global as any).dataDb)) {
-    const filename = path.join(dataPath, "db", file);
-    (global as any).dataDb[file] = knex({
-      client: "better-sqlite3",
-      connection: {
-        filename,
-        options: {
-          readonly: true,
+
+  // Create a unique key for connection based on type and connection details
+  const connectionKey = `${dbType}_${JSON.stringify(connectionInfo)}`;
+
+  if (!(connectionKey in (global as any).dataDb)) {
+    let knexConfig: any;
+
+    if (dbType === "sqlite") {
+      if (
+        !connectionInfo ||
+        typeof connectionInfo !== "object" ||
+        !("file" in connectionInfo)
+      ) {
+        throw new Error("Invalid SQLite connectionInfo: missing 'file'");
+      }
+      const filename = path.join(dataPath, "db", connectionInfo.file);
+      knexConfig = {
+        client: "better-sqlite3",
+        connection: {
+          filename,
+          options: {
+            readonly: true,
+          },
         },
-      },
-      useNullAsDefault: true,
-    });
+        useNullAsDefault: true,
+      };
+    } else if (dbType === "mysql") {
+      knexConfig = {
+        client: "mysql2",
+        connection: connectionInfo,
+      };
+    } else if (dbType === "postgresql") {
+      knexConfig = {
+        client: "pg",
+        connection: connectionInfo,
+      };
+    } else {
+      throw new Error(`Unsupported database type: ${dbType}`);
+    }
+
+    (global as any).dataDb[connectionKey] = knex(knexConfig);
     logger.debug("Created new datasource DB instance", {
-      filename,
       dbType,
+      connectionKey: `${connectionKey.substring(0, 50)}...`,
     });
   }
-  return (global as any).dataDb[file];
+  return (global as any).dataDb[connectionKey];
 }
 
 /**

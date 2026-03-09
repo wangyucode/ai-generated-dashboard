@@ -1,5 +1,5 @@
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
-import { createTools, doubao, MODEL_ID } from "@/lib/ai";
+import { createTools, getModel } from "@/lib/ai";
 import logger from "@/lib/logger";
 
 // Max duration for the API route
@@ -21,6 +21,7 @@ export async function POST(req: Request) {
 
     logger.info("Chat request received", {
       tableCount: selectedTables?.length,
+      dbType,
     });
 
     const systemMessage =
@@ -33,21 +34,22 @@ export async function POST(req: Request) {
       "3. **提出方案**：向用户解释你的分析思路和建议的可视化方案。\n" +
       "4. **生成视图**：使用 `generateView` 工具生成最终的视图配置。你需要提供标题、描述、SQL 查询、布局建议以及 Vega-Lite 配置。\n" +
       "\n" +
-      "### 关于 Vega-Lite 配置 (viz_config)：\n" +
+      "### 关于 Vega-Lite 配置 (viz_config):\n" +
       "- 使用 standard Vega-Lite JSON 格式。\n" +
       '- `data` 属性应设为 `{"values": []}`，系统会自动将 SQL 查询结果填充到其中。\n' +
       "- 确保字段名称与你的 `query_sql` 返回的列名完全一致。\n" +
       "- 优先使用简洁、现代的设计风格。\n" +
       "\n" +
       "### 约束条件：\n" +
-      "- 只能执行查询语句，不能执行 DML 语句 (INSERT, UPDATE, DELETE)。\n" +
+      `- 只能执行符合 ${dbType} 的语法规范的查询语句，不能执行 DML 语句 (INSERT, UPDATE, DELETE)。\n` +
       "- 一次仅返回一个可视化视图。\n";
 
     const connectionInfo = JSON.parse(connection_info);
     const tools = createTools(dbType, connectionInfo);
+    const model = getModel();
 
     const result = streamText({
-      model: doubao(MODEL_ID),
+      model,
       system: systemMessage,
       messages: await convertToModelMessages(messages),
       tools,

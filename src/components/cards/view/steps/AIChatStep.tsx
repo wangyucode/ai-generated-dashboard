@@ -34,6 +34,7 @@ export interface GenerateViewArgs {
   viz_config: string;
   layout_w: number;
   layout_h: number;
+  layout_order?: number;
 }
 
 export function AIChatStep({
@@ -87,6 +88,7 @@ export function AIChatStep({
         viz_config: viewData.viz_config,
         layout_w: viewData.layout_w,
         layout_h: viewData.layout_h,
+        layout_order: viewData.layout_order,
       });
 
       if (result.success) {

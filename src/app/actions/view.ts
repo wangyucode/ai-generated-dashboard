@@ -11,6 +11,7 @@ export async function getViews(dataSourceId: number) {
     const db = getMetaDbInstance();
     const views = await db("views")
       .where("data_source_id", dataSourceId)
+      .orderBy("layout_order", "asc")
       .orderBy("created_at", "desc");
 
     logger.debug("Views fetched successfully", {
@@ -66,6 +67,7 @@ export async function updateView(
     viz_config: string;
     layout_w: number;
     layout_h: number;
+    layout_order: number;
   },
 ) {
   try {
@@ -98,6 +100,7 @@ export async function saveView(viewData: {
   viz_config: string;
   layout_w?: number;
   layout_h?: number;
+  layout_order?: number;
 }) {
   try {
     logger.info("Saving new view", {

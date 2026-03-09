@@ -30,6 +30,7 @@ interface View {
   viz_config: string;
   layout_w: number;
   layout_h: number;
+  layout_order: number;
 }
 
 interface ViewSettingsDialogProps {
@@ -49,6 +50,7 @@ export function ViewSettingsDialog({
   const [description, setDescription] = useState(view.description || "");
   const [layoutW, setLayoutW] = useState(view.layout_w.toString());
   const [layoutH, setLayoutH] = useState(view.layout_h.toString());
+  const [layoutOrder, setLayoutOrder] = useState(view.layout_order.toString());
   const [querySql, setQuerySql] = useState(view.query_sql);
   const [vizConfig, setVizConfig] = useState(view.viz_config);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,6 +67,7 @@ export function ViewSettingsDialog({
         viz_config: vizConfig,
         layout_w: parseInt(layoutW, 10),
         layout_h: parseInt(layoutH, 10),
+        layout_order: parseInt(layoutOrder, 10),
       };
 
       const result = await updateView(view.id, updateData);
@@ -118,7 +121,7 @@ export function ViewSettingsDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="layout_w">宽度 (列)</Label>
               <Select value={layoutW} onValueChange={setLayoutW}>
@@ -148,6 +151,16 @@ export function ViewSettingsDialog({
                   <SelectItem value="4">4 行</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="layout_order">排序权重</Label>
+              <Input
+                id="layout_order"
+                type="number"
+                value={layoutOrder}
+                onChange={(e) => setLayoutOrder(e.target.value)}
+                placeholder="数字越大越靠后"
+              />
             </div>
           </div>
 

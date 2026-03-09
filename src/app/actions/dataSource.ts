@@ -31,41 +31,69 @@ export async function getDataSource(): Promise<DataSource | null> {
 
 /**
  * 添加新的数据源
- * @param payload 包含数据源名称和 SQLite 文件名
  */
-export async function addDataSource(payload: { name: string; file: string }) {
+export async function addDataSource(payload: {
+  name: string;
+  type: string;
+  connectionInfo: any;
+}) {
   try {
     logger.info("Adding new data source", {
       name: payload.name,
-      file: payload.file,
+      type: payload.type,
     });
-    // 1. 验证 SQLite 路径是否存在
-    if (!fs.existsSync(path.join(dataPath, "db", payload.file))) {
-      logger.error("SQLite database file does not exist", {
-        file: payload.file,
-      });
-      throw new Error(`SQLite 数据库文件不存在: ${payload.file}`);
+
+    // 1. 验证 SQLite 路径是否存在 (如果是 SQLite)
+    if (payload.type === "sqlite") {
+      if (
+        !fs.existsSync(path.join(dataPath, "db", payload.connectionInfo.file))
+      ) {
+        logger.error("SQLite database file does not exist", {
+          file: payload.connectionInfo.file,
+        });
+        throw new Error(
+          `SQLite 数据库文件不存在: ${payload.connectionInfo.file}`,
+        );
+      }
     }
 
-    // 2. 使用 getDatasourceDbInstance 连接到该 SQLite 数据库
-    const targetDb = getDatasourceDbInstance({ file: payload.file }, "sqlite");
+    // 2. 使用 getDatasourceDbInstance 连接到数据库并获取表数量
+    const targetDb = getDatasourceDbInstance(
+      payload.connectionInfo,
+      payload.type,
+    );
 
-    const tables = await targetDb("sqlite_master")
-      .where("type", "table")
-      .whereNot("name", "like", "sqlite_%");
-    const tableCount = tables.length;
+    let tableCount = 0;
+    if (payload.type === "sqlite") {
+      const tables = await targetDb("sqlite_master")
+        .where("type", "table")
+        .whereNot("name", "like", "sqlite_%");
+      tableCount = tables.length;
+    } else if (payload.type === "mysql") {
+      const [rows] = await targetDb.raw("SHOW TABLES");
+      tableCount = (rows as any[]).length;
+    } else if (payload.type === "postgresql") {
+      const result = await targetDb.raw(
+        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",
+      );
+      tableCount = result.rows.length;
+    }
+
     logger.debug("Connected to database and counted tables", {
-      file: payload.file,
+      type: payload.type,
       tableCount,
     });
 
     // 3. 将信息存入 meta.db 的 data_sources 表
     const db = getMetaDbInstance();
     const [id] = await db("data_sources").insert({
-      type: "sqlite",
-      connection_info: JSON.stringify({ file: payload.file }),
+      type: payload.type,
+      connection_info: JSON.stringify(payload.connectionInfo),
       name: payload.name,
-      database: payload.file,
+      database:
+        payload.type === "sqlite"
+          ? payload.connectionInfo.file
+          : payload.connectionInfo.database || payload.name,
       table_count: tableCount,
     });
 

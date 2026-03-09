@@ -11,6 +11,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.58",
+    "@ai-sdk/deepseek": "^2.0.24",
+    "@ai-sdk/openai": "^3.0.41",
     "@ai-sdk/react": "^3.0.118",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-slot": "^1.2.4",
@@ -23,7 +26,9 @@
     "doubao-ai-provider": "^1.0.2",
     "knex": "^3.1.0",
     "lucide-react": "^0.577.0",
+    "mysql2": "^3.19.1",
     "next": "16.1.6",
+    "pg": "^8.20.0",
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",

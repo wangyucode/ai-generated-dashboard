@@ -123,6 +123,15 @@ export function GenerateViewPreview({
             <p>
               <span className="font-semibold text-foreground">大小:</span>{" "}
               {generateViewArgs.layout_w} x {generateViewArgs.layout_h}
+              {generateViewArgs.layout_order !== undefined && (
+                <>
+                  <span className="mx-2 text-muted-foreground">|</span>
+                  <span className="font-semibold text-foreground">
+                    排序权重:
+                  </span>{" "}
+                  {generateViewArgs.layout_order}
+                </>
+              )}
             </p>
           </div>
           <div className="mb-4">

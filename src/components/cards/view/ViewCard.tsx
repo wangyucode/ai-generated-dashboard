@@ -18,6 +18,7 @@ interface View {
   viz_config: string;
   layout_w: number;
   layout_h: number;
+  layout_order: number;
 }
 
 interface ViewCardProps {

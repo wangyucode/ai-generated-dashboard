@@ -16,6 +16,7 @@ interface View {
   viz_config: string;
   layout_w: number;
   layout_h: number;
+  layout_order: number;
 }
 
 export function ViewGrid() {
@@ -67,9 +68,19 @@ export function ViewGrid() {
   };
 
   const handleUpdate = (updatedView: View) => {
-    setViews((prev) =>
-      prev.map((v) => (v.id === updatedView.id ? updatedView : v)),
-    );
+    setViews((prev) => {
+      const newViews = prev.map((v) =>
+        v.id === updatedView.id ? updatedView : v,
+      );
+      // Re-sort views by layout_order
+      return [...newViews].sort((a, b) => {
+        if (a.layout_order !== b.layout_order) {
+          return a.layout_order - b.layout_order;
+        }
+        // Fallback to ID or something else for stability
+        return b.id - a.id;
+      });
+    });
   };
 
   if (!currentDataSource) return null;
