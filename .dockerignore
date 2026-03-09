@@ -13,4 +13,3 @@ doc
 .env.development.local
 .env.test.local
 .env.production.local
-pnpm-lock.yaml
