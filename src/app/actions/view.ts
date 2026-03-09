@@ -32,6 +32,62 @@ export async function getViews(dataSourceId: number) {
 }
 
 /**
+ * 删除视图
+ */
+export async function deleteView(id: number) {
+  try {
+    logger.info("Deleting view", { id });
+    const db = getMetaDbInstance();
+    await db("views").where("id", id).del();
+
+    logger.info({ id }, "View deleted successfully");
+    return {
+      success: true,
+    };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "删除视图失败";
+    logger.error({ error, id }, "Failed to delete view");
+    return {
+      success: false,
+      error: message,
+    };
+  }
+}
+
+/**
+ * 更新视图
+ */
+export async function updateView(
+  id: number,
+  viewData: {
+    title: string;
+    description?: string;
+    query_sql: string;
+    viz_config: string;
+    layout_w: number;
+    layout_h: number;
+  },
+) {
+  try {
+    logger.info("Updating view", { id, title: viewData.title });
+    const db = getMetaDbInstance();
+    await db("views").where("id", id).update(viewData);
+
+    logger.info({ id, title: viewData.title }, "View updated successfully");
+    return {
+      success: true,
+    };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "更新视图失败";
+    logger.error({ error, id, viewData }, "Failed to update view");
+    return {
+      success: false,
+      error: message,
+    };
+  }
+}
+
+/**
  * 保存视图
  */
 export async function saveView(viewData: {

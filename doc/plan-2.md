@@ -66,19 +66,19 @@
     *   [x] **内容**:
         *   `saveView(viewData)`: 将 AI 生成的配置存入 `views` 表。
         *   `getViews(dataSourceId)`: 获取指定数据源的所有视图。
-*   [ ] **任务 8: Dashboard 集成**
-    *   [ ] **文件**: `src/components/ViewGrid.tsx` (新建 or 集成到 page)
-    *   [ ] **内容**:
+*   [x] **任务 8: Dashboard 集成**
+    *   [x] **文件**: `src/components/ViewGrid.tsx` (新建 or 集成到 page)
+    *   [x] **内容**:
         *   根据当前 `dataSourceId` 获取并渲染所有保存的视图。
         *   使用 Vega-Lite (如 `react-vega`) 渲染图表。
 
 ## 3. 验收标准 (Acceptance Criteria)
-1.  [ ] **流程连贯**: 用户选择表格 -> 自动进入对话 -> AI 自动生成 -> 保存展示，全流程无阻碍。
-2.  [ ] **AI 响应**:
-    *   [ ] 默认提示词能触发有效的 JSON 输出。
-    *   [ ] 输出包含合法的 Vega-Lite 配置。
-3.  [ ] **数据关联**: 生成的图表字段必须真实存在于选中的表格中。
-4.  [ ] **持久化**: 刷新页面后，生成的图表依然显示。
+1.  [x] **流程连贯**: 用户选择表格 -> 自动进入对话 -> AI 自动生成 -> 保存展示，全流程无阻碍。
+2.  [x] **AI 响应**:
+    *   [x] 默认提示词能触发有效的 JSON 输出。
+    *   [x] 输出包含合法的 Vega-Lite 配置。
+3.  [x] **数据关联**: 生成的图表字段必须真实存在于选中的表格中。
+4.  [x] **持久化**: 刷新页面后，生成的图表依然显示。
 
 ## 4. 注意事项 (Notes)
 *   **Prompt Engineering**: 核心难点在于让 AI 稳定输出符合 Schema 的 JSON。建议在 System Prompt 中强约束字段名。

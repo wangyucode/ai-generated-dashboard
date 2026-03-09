@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getViews } from "@/app/actions/view";
+import { deleteView, getViews } from "@/app/actions/view";
 import { useDataSourceStore } from "@/store/useDataSourceStore";
 import { ViewCard } from "./ViewCard";
 
@@ -45,6 +45,27 @@ export function ViewGrid() {
     fetchViews();
   }, [currentDataSource]);
 
+  const handleDelete = async (id: number) => {
+    if (!confirm("确定要删除这个视图吗？")) return;
+
+    try {
+      const result = await deleteView(id);
+      if (result.success) {
+        setViews((prev) => prev.filter((v) => v.id !== id));
+      } else {
+        alert(result.error || "删除视图失败");
+      }
+    } catch (_e) {
+      alert("删除视图时出错");
+    }
+  };
+
+  const handleUpdate = (updatedView: View) => {
+    setViews((prev) =>
+      prev.map((v) => (v.id === updatedView.id ? updatedView : v)),
+    );
+  };
+
   if (!currentDataSource) return null;
 
   if (isLoading) {
@@ -66,7 +87,12 @@ export function ViewGrid() {
   return (
     <>
       {views.map((view) => (
-        <ViewCard key={view.id} view={view} />
+        <ViewCard
+          key={view.id}
+          view={view}
+          onDelete={() => handleDelete(view.id)}
+          onUpdate={handleUpdate}
+        />
       ))}
     </>
   );

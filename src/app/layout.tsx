@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   title: "AI Generated Dashboard",
   description:
     "Transforms raw database data into valuable data visualization dashboards through an intelligent, AI-driven workflow.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
