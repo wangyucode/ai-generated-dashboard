@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { version } from "../../package.json";
+import logo from "../../public/logo.png";
 
 export function Navbar() {
   return (
@@ -7,7 +8,7 @@ export function Navbar() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Image
-            src="/logo.png"
+            src={logo}
             alt="logo"
             width={32}
             height={32}
