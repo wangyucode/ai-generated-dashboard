@@ -42,6 +42,7 @@ Copy `.env.example` to `.env.local` and configure the following environment vari
 | `MODEL_ID` | 模型接入点 ID (Endpoint ID) 或模型名称 | `doubao-seed-2-0-mini-260215` |
 | `OPENAI_BASE_URL` | OpenAI API 代理地址 (可选) | - |
 | `ADMIN_PASSWORD` | 管理员登录密码，用于配置数据源 | `admin456` |
+| `NEXT_PUBLIC_BASE_PATH` | 构建时路径前缀，例如 `/dashboard` | - |
 
 ## 部署 / Deployment
 
@@ -61,6 +62,8 @@ services:
     volumes:
       - <your_local_db_file_path>:/app/data/db/sqlite.db:ro # sqlite db file must mount to /app/data/db/
 ```
+> Note: this image was build with `NEXT_PUBLIC_BASE_PATH = /dashboard`, should access via `/dashboard`
+> 注意：此镜像默认路径前缀为 `/dashboard`，部署后需要通过 `/dashboard` 访问。
 
 ## 🔧 Technologies Stack / 技术栈
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import {
   AlertCircle,
   ChevronLeft,
@@ -47,7 +48,11 @@ export function AIChatStep({
   const [isSaving, setIsSaving] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages, sendMessage, status, error, stop } = useChat();
+  const { messages, sendMessage, status, error, stop } = useChat({
+    transport: new DefaultChatTransport({
+      api: `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/api/chat`,
+    }),
+  });
 
   const isLoading = status === "submitted" || status === "streaming";
 

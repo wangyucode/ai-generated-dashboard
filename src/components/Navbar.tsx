@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { version } from "../../package.json";
 
 export function Navbar() {
   return (
@@ -14,6 +15,9 @@ export function Navbar() {
           />
           <span className="text-lg font-bold tracking-tight">
             AI Generated Dashboard
+          </span>
+          <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+            v{version}
           </span>
         </div>
       </div>
