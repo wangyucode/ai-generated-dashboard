@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -38,6 +39,7 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [message, setMessage] = useState<{
@@ -87,7 +89,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         setMessage({ type: "success", text: "设置已保存" });
         setTimeout(() => {
           onOpenChange(false);
-          window.location.reload();
+          router.refresh();
         }, 1000);
       } else {
         setMessage({ type: "error", text: result.message });

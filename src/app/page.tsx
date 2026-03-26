@@ -8,7 +8,7 @@ import { StoreInitializer } from "@/components/StoreInitializer";
 
 export default async function Home() {
   const dataSource = await getDataSource();
-  const aiConfig = await getAIConfig(false);
+  const aiConfig = await getAIConfig();
   const aiConfigured = !!(
     aiConfig?.base_url &&
     aiConfig?.model_id &&

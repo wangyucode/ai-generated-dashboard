@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getMetaDbInstance, initDatabase } from "@/lib/db";
 import logger from "@/lib/logger";
 
@@ -81,6 +82,7 @@ export async function saveAIConfig(payload: {
       });
     }
 
+    revalidatePath("/");
     return { success: true, message: "AI config saved successfully" };
   } catch (error) {
     logger.error({ error }, "Failed to save AI config");
