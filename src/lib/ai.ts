@@ -1,86 +1,25 @@
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { createDeepSeek } from "@ai-sdk/deepseek";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { tool } from "ai";
-import { createDoubao } from "doubao-ai-provider";
 import { compile, type TopLevelSpec } from "vega-lite";
 import { z } from "zod";
 import { runSqlAction } from "@/app/actions/dataSource";
 import logger from "@/lib/logger";
 
-// Helper for Doubao specific reasoning effort
-export function getAddBodyFetchFunction(extraBody: Record<string, unknown>) {
-  return (url: RequestInfo | URL, options?: RequestInit) => {
-    if (options?.body && Object.keys(extraBody).length > 0) {
-      try {
-        const body = JSON.parse(options.body.toString());
-        Object.assign(body, extraBody);
-        options.body = JSON.stringify(body);
-        logger.info("sending request with body", body);
-      } catch (error) {
-        logger.error("设置额外body参数失败", error);
-      }
-    }
-    return fetch(url, options);
-  };
-}
+export function getModel(baseURL?: string, modelId?: string, apiKey?: string) {
+  if (!apiKey) {
+    logger.warn("OpenRouter API key is not configured");
+    return null;
+  }
 
-/**
- * AI Provider Factory
- */
-export function getModel(provider?: string, modelId?: string) {
-  const aiProvider = provider || process.env.AI_PROVIDER || "doubao";
-  const aiModelId = modelId || process.env.MODEL_ID;
-
-  logger.info("Initializing AI model", {
-    provider: aiProvider,
-    modelId: aiModelId,
+  const openrouter = createOpenRouter({
+    apiKey,
+    baseURL: baseURL || "https://openrouter.ai/api/v1",
   });
 
-  switch (aiProvider) {
-    case "openai": {
-      const openai = createOpenAI({
-        apiKey: process.env.API_KEY,
-        baseURL: process.env.OPENAI_BASE_URL,
-      });
-      return openai(aiModelId || "gpt-4o");
-    }
-
-    case "anthropic": {
-      const anthropic = createAnthropic({
-        apiKey: process.env.API_KEY,
-      });
-      return anthropic(aiModelId || "claude-3-5-sonnet-20240620");
-    }
-
-    case "deepseek": {
-      const deepseek = createDeepSeek({
-        apiKey: process.env.API_KEY,
-      });
-      return deepseek(aiModelId || "deepseek-chat");
-    }
-
-    case "doubao":
-    default: {
-      const doubao = createDoubao({
-        apiKey: process.env.API_KEY,
-        fetch: getAddBodyFetchFunction({
-          reasoning_effort: "low",
-        }),
-      });
-      return doubao(aiModelId || "doubao-seed-2-0-mini-260215");
-    }
-  }
+  const model = modelId || "openrouter/free";
+  logger.info("Initializing OpenRouter model", { baseURL, modelId: model });
+  return openrouter(model);
 }
-
-// Keep backward compatibility for existing code that might import doubao/MODEL_ID
-export const doubao = createDoubao({
-  apiKey: process.env.API_KEY,
-  fetch: getAddBodyFetchFunction({
-    reasoning_effort: "low",
-  }),
-});
-export const MODEL_ID = process.env.MODEL_ID || "doubao-seed-2-0-mini-260215";
 
 export const createTools = (dbType: string, connectionInfo: any) => ({
   runSql: tool({

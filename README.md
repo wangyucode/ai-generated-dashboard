@@ -4,6 +4,8 @@ A modern, full-stack Next.js application that leverages AI to analyze and visual
 
 这是一个现代化的全栈 Next.js 应用，利用 AI 分析和可视化任意数据库数据，将原始数据库数据转化为有价值的数据可视化面板，而不需要任何后端和前端代码。
 
+![introduction](./introduction.jpg)
+
 ## ✨ Core Features / 核心功能
 
 ### 🤖 AI-Powered Analysis / AI 智能分析:
@@ -37,10 +39,6 @@ Copy `.env.example` to `.env.local` and configure the following environment vari
 
 | 变量名 / Variable | 描述 / Description | 默认值 / Default |
 | :--- | :--- | :--- |
-| `AI_PROVIDER` | AI 提供商，可选 `doubao`, `openai`, `anthropic`, `deepseek` | `doubao` |
-| `API_KEY` | AI 服务的 API KEY (适用于所有提供商) | - |
-| `MODEL_ID` | 模型接入点 ID (Endpoint ID) 或模型名称 | `doubao-seed-2-0-mini-260215` |
-| `OPENAI_BASE_URL` | OpenAI API 代理地址 (可选) | - |
 | `ADMIN_PASSWORD` | 管理员登录密码，用于配置数据源 | `admin456` |
 | `NEXT_PUBLIC_BASE_PATH` | 构建时路径前缀，例如 `/dashboard` (默认为空) | - |
 
@@ -67,7 +65,6 @@ services:
     ports:
       - 3000:3000
     environment:
-      - API_KEY=your_api_key
       - ADMIN_PASSWORD=your_secure_password
     volumes:
       - <your_local_db_file_path>:/app/data/db/sqlite.db:ro # sqlite db file must mount to /app/data/db/

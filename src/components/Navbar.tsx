@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ModelSettings } from "@/components/ModelSettings";
 import { version } from "../../package.json";
 import logo from "../../public/logo.png";
 
@@ -21,6 +22,7 @@ export function Navbar() {
             v{version}
           </span>
         </div>
+        <ModelSettings />
       </div>
     </header>
   );

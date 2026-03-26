@@ -144,6 +144,19 @@ export async function initDatabase() {
           .onDelete("CASCADE");
       });
     }
+
+    // 创建 ai_configs 表
+    const hasAiConfigs = await db.schema.hasTable("ai_configs");
+    if (!hasAiConfigs) {
+      logger.info("Creating ai_configs table");
+      await db.schema.createTable("ai_configs", (table) => {
+        table.increments("id").primary();
+        table.text("base_url").notNullable();
+        table.text("model_id").notNullable();
+        table.text("api_key").notNullable();
+        table.boolean("is_active").defaultTo(true);
+      });
+    }
   } catch (error) {
     logger.error({ error }, "Failed to initialize database");
     throw error;

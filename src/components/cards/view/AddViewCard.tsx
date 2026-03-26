@@ -17,7 +17,11 @@ import { TableSelectionStep } from "./steps/TableSelectionStep";
 
 type Step = "select-table" | "ai-chat";
 
-export function AddViewCard() {
+interface AddViewCardProps {
+  aiConfigured?: boolean;
+}
+
+export function AddViewCard({ aiConfigured = true }: AddViewCardProps) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("select-table");
   const [selectedTables, setSelectedTables] = useState<string[]>([]);
@@ -35,13 +39,21 @@ export function AddViewCard() {
     setSelectedTables([]);
   };
 
+  const handleTriggerClick = () => {
+    if (!aiConfigured) {
+      alert("请先在右上角“设置”中配置 AI 后再添加视图");
+      return;
+    }
+    withAdminAuth(() => setOpen(true));
+  };
+
   return (
     <>
       <Dialog
         open={open}
         onOpenChange={(v) => {
           if (!v) handleClose();
-          else withAdminAuth(() => setOpen(true));
+          else handleTriggerClick();
         }}
       >
         <DialogTrigger asChild>
