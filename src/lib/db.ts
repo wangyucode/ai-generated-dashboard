@@ -34,6 +34,14 @@ export function getMetaDbInstance(): Knex {
 }
 
 /**
+ * 获取元数据库实例 (保证已初始化)
+ */
+export async function getMetaDb(): Promise<Knex> {
+  await initDatabase();
+  return getMetaDbInstance();
+}
+
+/**
  * 获取特定数据源的数据库实例
  * @param filename SQLite 数据库文件名
  */

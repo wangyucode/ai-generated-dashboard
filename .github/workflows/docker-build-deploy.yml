@@ -30,8 +30,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          env:
-            NEXT_PUBLIC_BASE_PATH: /dashboard
+          build-args: |
+            NEXT_PUBLIC_BASE_PATH=/dashboard
           push: true
           tags: |
             wangyucode/ai-generated-dashboard:latest
@@ -48,7 +48,7 @@ jobs:
           script: |
             cd /root/docker/
             docker pull wangyucode/ai-generated-dashboard:latest
-            DASHBOARD_VERSION=${{ env.VERSION }} docker compose up -d --force-recreate --pull always app
+            DASHBOARD_VERSION=${{ env.VERSION }} docker compose up -d --force-recreate --pull always dashboard
             sleep 10
             docker compose ps
             docker image prune -f

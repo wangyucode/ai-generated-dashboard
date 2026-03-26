@@ -24,6 +24,10 @@ COPY . .
 # Install pnpm for build
 RUN corepack enable && corepack prepare pnpm@10.30.3 --activate
 
+# Pass build arguments to environment variables
+ARG NEXT_PUBLIC_BASE_PATH
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
+
 # Disable Next.js telemetry
 ENV NEXT_TELEMETRY_DISABLED 1
 
@@ -36,6 +40,10 @@ WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
+
+# Add build argument and set environment variable for runtime if needed
+ARG NEXT_PUBLIC_BASE_PATH
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs

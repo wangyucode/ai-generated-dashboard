@@ -1,6 +1,6 @@
 "use server";
 
-import { getMetaDbInstance } from "@/lib/db";
+import { getMetaDb } from "@/lib/db";
 import logger from "@/lib/logger";
 
 /**
@@ -8,7 +8,7 @@ import logger from "@/lib/logger";
  */
 export async function getViews(dataSourceId: number) {
   try {
-    const db = getMetaDbInstance();
+    const db = await getMetaDb();
     const views = await db("views")
       .where("data_source_id", dataSourceId)
       .orderBy("layout_order", "asc")
@@ -38,7 +38,7 @@ export async function getViews(dataSourceId: number) {
 export async function deleteView(id: number) {
   try {
     logger.info("Deleting view", { id });
-    const db = getMetaDbInstance();
+    const db = await getMetaDb();
     await db("views").where("id", id).del();
 
     logger.info({ id }, "View deleted successfully");
@@ -72,7 +72,7 @@ export async function updateView(
 ) {
   try {
     logger.info("Updating view", { id, title: viewData.title });
-    const db = getMetaDbInstance();
+    const db = await getMetaDb();
     await db("views").where("id", id).update(viewData);
 
     logger.info({ id, title: viewData.title }, "View updated successfully");
@@ -107,7 +107,7 @@ export async function saveView(viewData: {
       title: viewData.title,
       dataSourceId: viewData.data_source_id,
     });
-    const db = getMetaDbInstance();
+    const db = await getMetaDb();
     const [id] = await db("views").insert(viewData);
 
     logger.info({ id, title: viewData.title }, "View saved successfully");

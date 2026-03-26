@@ -6,8 +6,7 @@ import { revalidatePath } from "next/cache";
 import {
   dataPath,
   getDatasourceDbInstance,
-  getMetaDbInstance,
-  initDatabase,
+  getMetaDb,
 } from "@/lib/db";
 import logger from "@/lib/logger";
 import type { DataSource } from "@/types/database";
@@ -17,8 +16,7 @@ import type { DataSource } from "@/types/database";
  */
 export async function getDataSource(): Promise<DataSource | null> {
   try {
-    await initDatabase();
-    const db = getMetaDbInstance();
+    const db = await getMetaDb();
     const dataSource = await db<DataSource>("data_sources")
       .orderBy("id", "desc")
       .first();
@@ -85,7 +83,7 @@ export async function addDataSource(payload: {
     });
 
     // 3. 将信息存入 meta.db 的 data_sources 表
-    const db = getMetaDbInstance();
+    const db = await getMetaDb();
     const [id] = await db("data_sources").insert({
       type: payload.type,
       connection_info: JSON.stringify(payload.connectionInfo),
@@ -124,7 +122,7 @@ export async function addDataSource(payload: {
  */
 export async function getTables(id: number) {
   try {
-    const db = getMetaDbInstance();
+    const db = await getMetaDb();
     const dataSource = await db<DataSource>("data_sources")
       .where("id", id)
       .first();
@@ -164,7 +162,7 @@ export async function getTableSchemas(
   tableNames: string[],
 ) {
   try {
-    const db = getMetaDbInstance();
+    const db = await getMetaDb();
     const dataSource = await db<DataSource>("data_sources")
       .where("id", dataSourceId)
       .first();
@@ -233,7 +231,7 @@ export async function runSqlAction(
  */
 export async function deleteDataSource(id: number) {
   try {
-    const db = getMetaDbInstance();
+    const db = await getMetaDb();
     await db("data_sources").where("id", id).delete();
     revalidatePath("/");
     return { success: true };

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans_SC } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
+import logo from "../../public/logo.png";
 
 const notoSansSC = Noto_Sans_SC({
   variable: "--font-noto-sans-sc",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   description:
     "Transforms raw database data into valuable data visualization dashboards through an intelligent, AI-driven workflow.",
   icons: {
-    icon: "/logo.png",
+    icon: logo.src,
   },
 };
 

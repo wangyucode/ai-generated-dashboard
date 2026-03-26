@@ -40,11 +40,21 @@ Copy `.env.example` to `.env.local` and configure the following environment vari
 | 变量名 / Variable | 描述 / Description | 默认值 / Default |
 | :--- | :--- | :--- |
 | `ADMIN_PASSWORD` | 管理员登录密码，用于配置数据源 | `admin456` |
-| `NEXT_PUBLIC_BASE_PATH` | 构建时路径前缀，例如 `/dashboard` | - |
+| `NEXT_PUBLIC_BASE_PATH` | 构建时路径前缀，例如 `/dashboard` (默认为空) | - |
 
 ## 部署 / Deployment
 
-docker compose:
+### Docker Build / Docker 构建
+
+If you need to customize the base path (e.g., `/dashboard`), pass the `NEXT_PUBLIC_BASE_PATH` argument during build:
+
+如果你需要自定义路径前缀（如 `/dashboard`），请在构建时传入 `NEXT_PUBLIC_BASE_PATH` 参数：
+
+```bash
+docker build --build-arg NEXT_PUBLIC_BASE_PATH=/dashboard -t ai-generated-dashboard .
+```
+
+### Docker Compose
 
 ```yml
 version: '3'
@@ -59,8 +69,8 @@ services:
     volumes:
       - <your_local_db_file_path>:/app/data/db/sqlite.db:ro # sqlite db file must mount to /app/data/db/
 ```
-> Note: this image was build with `NEXT_PUBLIC_BASE_PATH = /dashboard`, should access via `/dashboard`
-> 注意：此镜像默认路径前缀为 `/dashboard`，部署后需要通过 `/dashboard` 访问。
+> Note: The pre-built image from GitHub Actions is built with `NEXT_PUBLIC_BASE_PATH = /dashboard` by default. If you need a different path, you must rebuild the image yourself.
+> 注意：GitHub Actions 预构建的镜像默认带有 `/dashboard` 路径前缀。如果需要其他路径，请自行构建镜像。
 
 ## 🔧 Technologies Stack / 技术栈
 
