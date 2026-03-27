@@ -101,7 +101,6 @@ export async function addDataSource(payload: {
       .first();
 
     logger.info("Data source added successfully", { id, name: payload.name });
-    revalidatePath("/");
     return {
       success: true,
       data: newDataSource,
@@ -233,7 +232,6 @@ export async function deleteDataSource(id: number) {
   try {
     const db = await getMetaDb();
     await db("data_sources").where("id", id).delete();
-    revalidatePath("/");
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "删除数据源失败";
