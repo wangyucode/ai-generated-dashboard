@@ -3,11 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { revalidatePath } from "next/cache";
-import {
-  dataPath,
-  getDatasourceDbInstance,
-  getMetaDb,
-} from "@/lib/db";
+import { dataPath, getDatasourceDbInstance, getMetaDb } from "@/lib/db";
 import logger from "@/lib/logger";
 import type { DataSource } from "@/types/database";
 

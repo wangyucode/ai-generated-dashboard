@@ -72,9 +72,7 @@ export function getDatasourceDbInstance(
         client: "better-sqlite3",
         connection: {
           filename,
-          options: {
-            readonly: true,
-          },
+          options: {},
         },
         useNullAsDefault: true,
       };

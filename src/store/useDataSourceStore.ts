@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import type { DataSource } from "@/types/database";
 import type { AIConfig } from "@/app/actions/aiConfig";
+import type { DataSource } from "@/types/database";
 
 interface DataSourceState {
   currentDataSource: DataSource | null;
