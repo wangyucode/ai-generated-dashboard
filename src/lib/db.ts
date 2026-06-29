@@ -26,6 +26,9 @@ export function getMetaDbInstance(): Knex {
       client: "better-sqlite3",
       connection: {
         filename: path.join(dataPath, "meta.db"),
+        pragma: {
+          journal_mode: "WAL",
+        },
       },
       useNullAsDefault: true,
     });
@@ -72,6 +75,9 @@ export function getDatasourceDbInstance(
         client: "better-sqlite3",
         connection: {
           filename,
+          pragma: {
+            journal_mode: "WAL",
+          },
           options: {},
         },
         useNullAsDefault: true,
