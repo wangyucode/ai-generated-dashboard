@@ -1,14 +1,13 @@
 "use client";
 
-import { saveAIConfig } from "@/app/actions/aiConfig";
-import { Button } from "@/components/ui/button";
-import { useDataSourceStore } from "@/store/useDataSourceStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { saveAIConfig } from "@/app/actions/aiConfig";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useDataSourceStore } from "@/store/useDataSourceStore";
 
 const formSchema = z.object({
   baseUrl: z.string().min(1, { message: "Base URL 不能为空" }),
@@ -146,11 +146,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 <FormItem>
                   <FormLabel>API Key</FormLabel>
                   <FormControl>
-                    <Input
-                      type="text"
-                      placeholder="sk-or-v1-..."
-                      {...field}
-                    />
+                    <Input type="text" placeholder="sk-or-v1-..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -158,10 +154,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             />
             {message && (
               <p
-                className={`text-sm font-medium ${message.type === "success"
-                  ? "text-green-600"
-                  : "text-destructive"
-                  }`}
+                className={`text-sm font-medium ${
+                  message.type === "success"
+                    ? "text-green-600"
+                    : "text-destructive"
+                }`}
               >
                 {message.text}
               </p>
@@ -175,9 +172,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 取消
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 保存
               </Button>
             </div>

@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { getAIConfig } from "@/app/actions/aiConfig";
 import { getDataSource } from "@/app/actions/dataSource";
-import { Loading } from "@/components/ui/Loading";
-import { DataSourceManager } from "@/components/cards/datasource/DataSourceManager";
 import { AIConfigAlert } from "@/components/cards/datasource/AIConfigAlert";
-import { ViewGrid } from "@/components/cards/view/ViewGrid";
+import { DataSourceManager } from "@/components/cards/datasource/DataSourceManager";
 import { AddViewCard } from "@/components/cards/view/AddViewCard";
+import { ViewGrid } from "@/components/cards/view/ViewGrid";
+import { Loading } from "@/components/ui/Loading";
 import { useDataSourceStore } from "@/store/useDataSourceStore";
 
 export default function Home() {
@@ -39,8 +39,8 @@ export default function Home() {
       <main className="container mx-auto p-4 md:p-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 md:gap-6 auto-rows-auto">
         {!aiConfigured && <AIConfigAlert />}
         <DataSourceManager />
-        {currentDataSource && <AddViewCard aiConfigured={aiConfigured} />}
         {currentDataSource && <ViewGrid />}
+        {currentDataSource && <AddViewCard aiConfigured={aiConfigured} />}
       </main>
     </>
   );
