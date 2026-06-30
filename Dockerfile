@@ -45,26 +45,21 @@ ENV NEXT_TELEMETRY_DISABLED 1
 ARG NEXT_PUBLIC_BASE_PATH
 ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 
-# Create data directory and set permissions
-RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
-
 # Copy public assets
 COPY --from=builder /app/public ./public
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 # Note: output standalone creates a folder 'standalone' with all files needed for production
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Expose the port the app runs on
-EXPOSE 3000
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
 # Set environment variables
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
 # Metadata for the database volume
+# Create data directory is handled by the application at runtime to avoid redundancy
 VOLUME ["/app/data"]
 
 # Start the application

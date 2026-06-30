@@ -10,10 +10,6 @@ import logger from "@/lib/logger";
  */
 
 export const dataPath = path.join(process.cwd(), "data");
-if (!fs.existsSync(dataPath)) {
-  logger.info("Creating data directory", { dataPath });
-  fs.mkdirSync(dataPath, { recursive: true });
-}
 
 /**
  * 获取元数据库实例 (Singleton)
@@ -23,18 +19,15 @@ export function getMetaDbInstance(): Knex {
   if (!(global as any).metaDb) {
     logger.debug("Creating new meta DB instance");
 
-    // 确保 data/meta 目录存在（含父目录）
+    // 确保必要目录存在 (data/meta, data/db)
     const metaDir = path.join(dataPath, "meta");
-    if (!fs.existsSync(metaDir)) {
-      fs.mkdirSync(metaDir, { recursive: true });
-      logger.info("Created meta directory", { metaDir });
-    }
-
-    // 确保 data/db 目录存在（供 SQLite 数据源使用）
     const dbBaseDir = path.join(dataPath, "db");
-    if (!fs.existsSync(dbBaseDir)) {
-      fs.mkdirSync(dbBaseDir, { recursive: true });
-      logger.info("Created db base directory", { dbBaseDir });
+
+    for (const dir of [metaDir, dbBaseDir]) {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        logger.info("Created directory", { dir });
+      }
     }
 
     const metaPath = path.join(metaDir, "meta.db");
