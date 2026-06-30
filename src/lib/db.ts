@@ -22,10 +22,25 @@ if (!fs.existsSync(dataPath)) {
 export function getMetaDbInstance(): Knex {
   if (!(global as any).metaDb) {
     logger.debug("Creating new meta DB instance");
+
+    // 确保 meta 目录存在
+    const metaDir = path.join(dataPath, "meta");
+    if (!fs.existsSync(metaDir)) {
+      fs.mkdirSync(metaDir, { recursive: true });
+    }
+
+    const metaPath = path.join(metaDir, "meta.db");
+
     (global as any).metaDb = knex({
       client: "better-sqlite3",
       connection: {
-        filename: path.join(dataPath, "meta.db"),
+        filename: metaPath,
+      },
+      pool: {
+        afterCreate: (db: any, cb: any) => {
+          db.pragma("journal_mode = WAL");
+          cb();
+        },
       },
       useNullAsDefault: true,
     });
@@ -43,10 +58,9 @@ export async function getMetaDb(): Promise<Knex> {
 
 /**
  * 获取特定数据源的数据库实例
- * @param filename SQLite 数据库文件名
  */
 export function getDatasourceDbInstance(
-  connectionInfo: any,
+  connectionInfo: Record<string, any>,
   dbType: string,
 ): Knex {
   if (!(global as any).dataDb) {
@@ -57,7 +71,7 @@ export function getDatasourceDbInstance(
   const connectionKey = `${dbType}_${JSON.stringify(connectionInfo)}`;
 
   if (!(connectionKey in (global as any).dataDb)) {
-    let knexConfig: any;
+    let knexConfig: Record<string, any>;
 
     if (dbType === "sqlite") {
       if (
@@ -67,12 +81,28 @@ export function getDatasourceDbInstance(
       ) {
         throw new Error("Invalid SQLite connectionInfo: missing 'file'");
       }
-      const filename = path.join(dataPath, "db", connectionInfo.file);
+
+      // SQLite 数据库存放在 data/db/<name>/<file>.db
+      // 如果没有提供 name，则尝试使用 file 的基本名称作为目录名
+      const dbName =
+        connectionInfo.name || path.parse(connectionInfo.file).name;
+      const dbDir = path.join(dataPath, "db", dbName);
+      const filename = path.join(dbDir, connectionInfo.file);
+
+      if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+      }
+
       knexConfig = {
         client: "better-sqlite3",
         connection: {
           filename,
-          options: {},
+        },
+        pool: {
+          afterCreate: (db: any, cb: any) => {
+            db.pragma("journal_mode = WAL");
+            cb();
+          },
         },
         useNullAsDefault: true,
       };
