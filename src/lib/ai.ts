@@ -21,7 +21,7 @@ export function getModel(baseURL?: string, modelId?: string, apiKey?: string) {
   return openrouter(model);
 }
 
-export const createTools = (dbType: string, connectionInfo: any) => ({
+export const createTools = (dbType: string, connectionInfo: unknown) => ({
   runSql: tool({
     description: "执行 SQL 查询以获取数据",
     inputSchema: z.object({
@@ -30,11 +30,15 @@ export const createTools = (dbType: string, connectionInfo: any) => ({
     execute: async ({ sql }) => {
       logger.info("Executing SQL query via tool", {
         sql,
-        connectionInfo,
+        connectionInfo: connectionInfo as Record<string, unknown>,
         dbType,
       });
       try {
-        const result = await runSqlAction(dbType, connectionInfo, sql);
+        const result = await runSqlAction(
+          dbType,
+          connectionInfo as Record<string, unknown>,
+          sql,
+        );
         logger.debug({ sql, success: result.success }, "SQL query executed");
         return result;
       } catch (error) {

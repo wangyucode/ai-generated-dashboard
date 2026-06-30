@@ -2,10 +2,53 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { revalidatePath } from "next/cache";
 import { dataPath, getDatasourceDbInstance, getMetaDb } from "@/lib/db";
 import logger from "@/lib/logger";
 import type { DataSource } from "@/types/database";
+
+/**
+ * 获取 data/db 目录下所有可用的 SQLite 数据库文件
+ * 结构为: data/db/<dir>/<file>.db
+ */
+export async function listAvailableSqliteDbs() {
+  try {
+    const dbBaseDir = path.join(dataPath, "db");
+    if (!fs.existsSync(dbBaseDir)) {
+      return { success: true, data: [] };
+    }
+
+    const dirs = fs
+      .readdirSync(dbBaseDir, { withFileTypes: true })
+      .filter((dirent) => dirent.isDirectory())
+      .map((dirent) => dirent.name);
+
+    const dbFiles: { name: string; file: string }[] = [];
+
+    for (const dirName of dirs) {
+      const dirPath = path.join(dbBaseDir, dirName);
+      const files = fs
+        .readdirSync(dirPath)
+        .filter(
+          (file) =>
+            file.endsWith(".db") ||
+            file.endsWith(".sqlite") ||
+            file.endsWith(".sqlite3"),
+        );
+
+      for (const file of files) {
+        dbFiles.push({
+          name: dirName,
+          file: file,
+        });
+      }
+    }
+
+    return { success: true, data: dbFiles };
+  } catch (error) {
+    logger.error({ error }, "Failed to list sqlite dbs");
+    return { success: false, error: "获取数据库列表失败" };
+  }
+}
 
 /**
  * 从 meta.db 查询第一个（或最新一个）数据源
@@ -29,7 +72,7 @@ export async function getDataSource(): Promise<DataSource | null> {
 export async function addDataSource(payload: {
   name: string;
   type: string;
-  connectionInfo: any;
+  connectionInfo: Record<string, unknown>;
 }) {
   try {
     logger.info("Adding new data source", {
@@ -39,16 +82,20 @@ export async function addDataSource(payload: {
 
     // 1. 验证 SQLite 路径是否存在 (如果是 SQLite)
     if (payload.type === "sqlite") {
-      if (
-        !fs.existsSync(path.join(dataPath, "db", payload.connectionInfo.file))
-      ) {
+      // 这里的 name 是用户输入的数据源别名
+      const dbDir = path.join(dataPath, "db", payload.name);
+      const dbPath = path.join(dbDir, payload.connectionInfo.file as string);
+
+      if (!fs.existsSync(dbPath)) {
         logger.error("SQLite database file does not exist", {
-          file: payload.connectionInfo.file,
+          path: dbPath,
         });
         throw new Error(
-          `SQLite 数据库文件不存在: ${payload.connectionInfo.file}`,
+          `SQLite 数据库文件不存在: ${dbPath}。请确保文件已放置在 data/db/${payload.name}/ 目录下。`,
         );
       }
+      // 将 name 注入 connectionInfo，以便 getDatasourceDbInstance 使用
+      payload.connectionInfo.name = payload.name;
     }
 
     // 2. 使用 getDatasourceDbInstance 连接到数据库并获取表数量
@@ -64,8 +111,11 @@ export async function addDataSource(payload: {
         .whereNot("name", "like", "sqlite_%");
       tableCount = tables.length;
     } else if (payload.type === "mysql") {
-      const [rows] = await targetDb.raw("SHOW TABLES");
-      tableCount = (rows as any[]).length;
+      const [rows] = (await targetDb.raw("SHOW TABLES")) as [
+        unknown[],
+        unknown,
+      ];
+      tableCount = rows.length;
     } else if (payload.type === "postgresql") {
       const result = await targetDb.raw(
         "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",
@@ -198,7 +248,7 @@ export async function getTableSchemas(
  */
 export async function runSqlAction(
   dbType: string,
-  connectionInfo: unknown,
+  connectionInfo: Record<string, unknown>,
   sql: string,
 ) {
   try {

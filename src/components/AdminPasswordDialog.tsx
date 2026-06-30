@@ -41,7 +41,7 @@ export function AdminPasswordDialog({
       } else {
         setError(result.error || "密码验证失败");
       }
-    } catch (e) {
+    } catch (_e) {
       setError("验证过程中发生错误");
     } finally {
       setIsLoading(false);
