@@ -23,10 +23,18 @@ export function getMetaDbInstance(): Knex {
   if (!(global as any).metaDb) {
     logger.debug("Creating new meta DB instance");
 
-    // 确保 meta 目录存在
+    // 确保 data/meta 目录存在（含父目录）
     const metaDir = path.join(dataPath, "meta");
     if (!fs.existsSync(metaDir)) {
       fs.mkdirSync(metaDir, { recursive: true });
+      logger.info("Created meta directory", { metaDir });
+    }
+
+    // 确保 data/db 目录存在（供 SQLite 数据源使用）
+    const dbBaseDir = path.join(dataPath, "db");
+    if (!fs.existsSync(dbBaseDir)) {
+      fs.mkdirSync(dbBaseDir, { recursive: true });
+      logger.info("Created db base directory", { dbBaseDir });
     }
 
     const metaPath = path.join(metaDir, "meta.db");

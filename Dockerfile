@@ -45,10 +45,6 @@ ENV NEXT_TELEMETRY_DISABLED 1
 ARG NEXT_PUBLIC_BASE_PATH
 ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 
-# Create non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
 # Create data directory and set permissions
 RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
 
@@ -60,9 +56,6 @@ COPY --from=builder /app/public ./public
 # Note: output standalone creates a folder 'standalone' with all files needed for production
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Switch to non-root user
-USER nextjs
 
 # Expose the port the app runs on
 EXPOSE 3000
