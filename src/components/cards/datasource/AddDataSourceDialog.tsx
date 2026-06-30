@@ -1,11 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Plus, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { addDataSource } from "@/app/actions/dataSource";
+import {
+  addDataSource,
+  listAvailableSqliteDbs,
+} from "@/app/actions/dataSource";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -57,6 +60,11 @@ interface AddDataSourceDialogProps {
 export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sqliteDbs, setSqliteDbs] = useState<{ name: string; file: string }[]>(
+    [],
+  );
+  const [loadingDbs, setLoadingDbs] = useState(false);
+
   const setCurrentDataSource = useDataSourceStore(
     (state) => state.setCurrentDataSource,
   );
@@ -79,17 +87,39 @@ export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
 
   const dbType = form.watch("type");
 
+  const fetchDbs = useCallback(async () => {
+    setLoadingDbs(true);
+    try {
+      const result = await listAvailableSqliteDbs();
+      if (result.success && result.data) {
+        setSqliteDbs(result.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch sqlite dbs:", error);
+    } finally {
+      setLoadingDbs(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open && dbType === "sqlite") {
+      fetchDbs();
+    }
+  }, [open, dbType, fetchDbs]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     withAdminAuth(async () => {
       setLoading(true);
       try {
-        let connectionInfo: any = {};
+        let connectionInfo: Record<string, unknown> = {};
         if (values.type === "sqlite") {
-          connectionInfo = { file: values.file };
+          // values.file 现在是 "name/file.db" 格式
+          const [name, file] = (values.file || "").split("/");
+          connectionInfo = { file, name };
         } else {
           connectionInfo = {
             host: values.host,
-            port: values.port ? parseInt(values.port) : undefined,
+            port: values.port ? parseInt(values.port, 10) : undefined,
             user: values.user,
             password: values.password,
             database: values.database,
@@ -190,10 +220,61 @@ export function AddDataSourceDialog({ children }: AddDataSourceDialogProps) {
                   name="file"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>数据库文件名 (File)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="例如：database.sqlite" {...field} />
-                      </FormControl>
+                      <div className="flex items-center justify-between">
+                        <FormLabel>选择数据库文件</FormLabel>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={fetchDbs}
+                          disabled={loadingDbs}
+                        >
+                          <RefreshCw
+                            className={`h-3 w-3 ${loadingDbs ? "animate-spin" : ""}`}
+                          />
+                        </Button>
+                      </div>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          // 自动设置数据源名称为目录名
+                          const selected = sqliteDbs.find(
+                            (db) => `${db.name}/${db.file}` === val,
+                          );
+                          if (selected) {
+                            form.setValue("name", selected.name);
+                            // 我们在 connectionInfo 中只需要文件名，路径由后端根据 name 拼接
+                            // 但为了保持 onSubmit 逻辑简单，我们这里存完整路径，或者在 onSubmit 处理
+                          }
+                        }}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="请选择数据库文件" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {sqliteDbs.length === 0 ? (
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                              未发现数据库文件
+                              <p className="mt-1 text-xs">
+                                请放置在 data/db/目录名/ 目录下
+                              </p>
+                            </div>
+                          ) : (
+                            sqliteDbs.map((db) => (
+                              <SelectItem
+                                key={`${db.name}/${db.file}`}
+                                value={`${db.name}/${db.file}`}
+                              >
+                                {db.name} ({db.file})
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

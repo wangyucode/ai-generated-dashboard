@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { getMetaDbInstance, initDatabase } from "@/lib/db";
 import logger from "@/lib/logger";
 
